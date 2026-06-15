@@ -1,0 +1,411 @@
+<!-- toast -->
+<div id="toast"><span class="toast-ico">🔒</span><span id="toast-msg">Questa sezione ha una posizione fissa</span></div>
+
+<!-- confirmation modal -->
+<div id="confirmModal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalText">
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-card">
+    <h2 id="confirmModalTitle">Sei sicuro?</h2>
+    <p id="confirmModalText">Hai completato la configurazione ma non hai selezionato alcun add-on. Gli add-on come SEO Base, Analytics e Form avanzato possono aumentare la conversione e aiutarti a ottenere più contatti.</p>
+    <p class="modal-note">Puoi procedere comunque oppure tornare indietro a scegliere gli add-on consigliati.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" onclick="closeModalAndOpenAddons()">Torna agli add-on</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmCheckout()">Procedi senza add-on</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <div class="logo">pronto<em>.site</em></div>
+  <ul class="nav-links">
+    <li><a href="#how">Come funziona</a></li>
+    <li><a href="#configurator">Configura</a></li>
+    <li><a href="#pricing">Prezzi</a></li>
+    <li><a href="#supporto">Supporto</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#configurator" class="nav-pill">Inizia ora →</a>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<section id="hero">
+  <div class="orb orb-y"></div>
+  <div class="orb orb-l"></div>
+  <div class="orb orb-p"></div>
+
+  <!-- LEFT -->
+  <div class="hero-left">
+    <div class="hero-eyebrow"><div class="eyebrow-dot"></div>Sito web professionale</div>
+    <h1 class="hero-h1">
+      <span class="h1-filled">Pronto.</span>
+      <span class="h1-italic">Bello.</span>
+      <span class="h1-outline">Online.</span>
+    </h1>
+    <p class="hero-sub">Configuri in 2 minuti, noi costruiamo in 48 ore. Nessuna riunione, nessuna sorpresa. Solo un sito che funziona, subito.</p>
+    <div class="hero-btns">
+      <a href="#configurator" class="btn-y">Costruisci il tuo sito →</a>
+      <a href="#how" class="btn-ghost-w">Come funziona ↓</a>
+    </div>
+    <p class="hero-note">A partire da <strong>€149</strong> · pagamento unico · nessun canone mensile</p>
+  </div>
+
+  <!-- RIGHT — 3D browser scene -->
+  <div class="hero-right">
+    <div class="scene">
+      <!-- decorative rings -->
+      <div class="deco-ring" style="width:500px;height:500px;border-color:rgba(245,240,168,.06);"></div>
+      <div class="deco-ring" style="width:360px;height:360px;border-color:rgba(216,204,255,.08);"></div>
+
+      <!-- bleeding elements -->
+      <div class="bleed bleed-badge" style="animation:floatEl 4s ease-in-out infinite;">
+        <div class="bb-top">Consegna in</div>
+        <div class="bb-val">48 ore ⚡</div>
+      </div>
+      <div class="bleed bleed-pill" style="animation:floatEl 5s ease-in-out infinite 1.8s;">
+        <div class="bp-dot"></div>
+        <span>Sito live ora</span>
+      </div>
+      <div class="bleed bleed-price" style="animation:floatEl 4.5s ease-in-out infinite 3s;">
+        <div class="bpr-lbl">A partire da</div>
+        <div class="bpr-val">€149</div>
+      </div>
+      <div class="bleed bleed-check" style="animation:floatEl 4s ease-in-out infinite 2.4s;">
+        ✓ Human reviewed
+      </div>
+
+      <!-- main browser -->
+      <div class="browser-card">
+        <div class="b-topbar">
+          <div class="b-dot b-r"></div>
+          <div class="b-dot b-y"></div>
+          <div class="b-dot b-g"></div>
+          <div class="b-url">
+            <div class="b-url-dot"></div>
+            <span class="b-url-txt">tuodominio.it</span>
+          </div>
+        </div>
+        <div class="site-preview">
+          <div class="sp-nav">
+            <div class="spn-logo"></div>
+            <div class="spn-links"><div class="spn-l"></div><div class="spn-l"></div><div class="spn-l"></div></div>
+            <div class="spn-btn"></div>
+          </div>
+          <div class="sp-hero-blk">
+            <div class="sph-txt"><div class="sph-h"></div><div class="sph-s"></div><div class="sph-b"></div></div>
+            <div class="sph-img"></div>
+          </div>
+          <div class="sp-cards">
+            <div class="sp-c"></div><div class="sp-c"></div><div class="sp-c"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint"><span>Scorri</span><div class="scroll-line"></div></div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track">
+    <span class="ticker-item">⚡ Consegna in 48h <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">Supporto rapido incluso <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">A partire da €149 <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">🤖 AI + revisione umana <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">📱 Mobile-first <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">🔒 Nessun costo nascosto <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">⚡ Consegna in 48h <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">Supporto rapido incluso <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">A partire da €149 <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">🤖 AI + revisione umana <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">📱 Mobile-first <span class="ticker-sep">·</span></span>
+    <span class="ticker-item">🔒 Nessun costo nascosto <span class="ticker-sep">·</span></span>
+  </div>
+</div>
+
+<!-- HOW -->
+<section id="how">
+  <div class="s-wrap">
+    <span class="s-tag reveal">Il processo</span>
+    <h2 class="s-h2 reveal">Quattro passi.<br><em>Un sito che funziona.</em></h2>
+    <div class="how-grid reveal">
+      <div class="how-card"><div class="how-num">1</div><span class="how-ico">🎛️</span><h3>Configuri online</h3><p>Scegli settore, blocchi, stile e add-on. Prezzo in tempo reale. Zero chiamate.</p></div>
+      <div class="how-card"><div class="how-num">2</div><span class="how-ico">📝</span><h3>Compili il brief</h3><p>10 domande guidate. In 5 minuti abbiamo tutto il necessario per iniziare.</p></div>
+      <div class="how-card"><div class="how-num">3</div><span class="how-ico">⚡</span><h3>Sviluppiamo</h3><p>Il sito prende forma in poche ore grazie all'intelligenza artificiale. Un esperto controlla tutto prima di consegnartelo.</p></div>
+      <div class="how-card"><div class="how-num">4</div><span class="how-ico">🚀</span><h3>Vai live</h3><p>Link di preview, approvi, il sito va online. Il tuo business è attivo.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI CHECK -->
+<section id="ai-check">
+  <div class="ai-inner">
+    <div class="ai-txt reveal">
+      <span class="s-tag">Trasparenza</span>
+      <h2>AI veloce.<br><em>Occhio umano</em><br>sulla qualità.</h2>
+      <p>Usiamo l'AI per sviluppare il tuo sito in ore. Ma <strong>ogni sito viene revisionato da un professionista</strong> prima della consegna: nessun errore, nessuna sorpresa.</p>
+      <div class="badge-row"><span class="badge b-ai">🤖 AI-powered</span><span class="badge b-hu">👁️ Human reviewed</span></div>
+    </div>
+    <div class="ai-terminal reveal rd2">
+      <div class="term-bar"><div class="tdot td1"></div><div class="tdot td2"></div><div class="tdot td3"></div><span class="term-ttl">quality-check.log</span></div>
+      <div class="term-body">
+        <div class="tl"><span class="tk">nome:</span><span class="tv bad" id="nameWrong">Pizzeira Napoli</span><span class="tv fix" id="nameFixed"> → Pizzeria Napoli ✓</span></div>
+        <div class="tl"><span class="tk">telefono:</span><span class="tv">+39 02 1234567 ✓</span></div>
+        <div class="tl"><span class="tk">SEO:</span><span class="tv">ottimizzato ✓</span></div>
+        <div class="tl"><span class="tk">mobile:</span><span class="tv">responsive ✓</span></div>
+        <div class="tl"><span class="tk">velocità:</span><span class="tv">98/100 ✓</span></div>
+      </div>
+      <div class="term-ok"><div class="ok-dot"></div>Sito approvato — pronto per la consegna</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CONFIGURATOR ═══════ -->
+<section id="configurator">
+  <div class="s-wrap" style="max-width:1180px;">
+    <span class="s-tag reveal">Configuratore</span>
+    <h2 class="s-h2 reveal">Costruisci il tuo sito.<br><em>Trascina i blocchi.</em></h2>
+    <div class="cfg-layout">
+
+      <div id="cfgSteps">
+
+        <!-- 1 SETTORE -->
+        <div class="cfg-acc-item">
+          <div class="cfg-acc-hdr open" onclick="toggleAcc(1,this)">
+            <div class="cfg-n">1</div>
+            <div class="cfg-titles"><div class="cfg-t">Di che tipo è la tua attività?</div><div class="cfg-s" id="s1sub">Scegli il settore più vicino a te</div></div>
+            <div class="cfg-chev">⌄</div>
+          </div>
+          <div class="cfg-body open" id="cfg-b1">
+            <div class="sec-grid">
+              <div class="sec-chip" onclick="pickSector(this,'Ristorazione')"><span class="sec-ico">🍕</span><span class="sec-nm">Ristorante / Bar</span></div>
+              <div class="sec-chip" onclick="pickSector(this,'Professionista')"><span class="sec-ico">💼</span><span class="sec-nm">Professionista</span></div>
+              <div class="sec-chip" onclick="pickSector(this,'Negozio online')"><span class="sec-ico">🛍️</span><span class="sec-nm">Negozio online</span></div>
+              <div class="sec-chip" onclick="pickSector(this,'Artista / Creativo')"><span class="sec-ico">🎨</span><span class="sec-nm">Artista / Creativo</span></div>
+              <div class="sec-chip" onclick="pickSector(this,'Beauty & Benessere')"><span class="sec-ico">💆</span><span class="sec-nm">Beauty & Benessere</span></div>
+              <div class="sec-chip sec-altro" onclick="pickSectorAltro(this)"><span class="sec-ico">✏️</span><span class="sec-nm">Altro…</span></div>
+            </div>
+            <div id="altro-wrap" style="display:none;margin-top:12px;">
+              <input id="altro-input" type="text" placeholder="Descrivi brevemente la tua attività…"
+                style="width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color .2s;"
+                oninput="onAltroInput(this)"
+                onfocus="this.style.borderColor='var(--night)'"
+                onblur="this.style.borderColor='var(--border)'"/>
+            </div>
+          </div>
+        </div>
+        <!-- 2 BLOCCHI -->
+        <div class="cfg-acc-item">
+          <div class="cfg-acc-hdr" onclick="toggleAcc(2,this)">
+            <div class="cfg-n">2</div>
+            <div class="cfg-titles"><div class="cfg-t">Blocchi del sito</div><div class="cfg-s" id="s2sub">Trascina le sezioni sulla canvas</div></div>
+            <div class="cfg-chev">⌄</div>
+          </div>
+          <div class="cfg-body" id="cfg-b2">
+            <div class="dnd-area">
+              <div class="dnd-lbl">Sezioni disponibili</div>
+              <div class="palette" id="palette">
+                <!-- locked chips shown as placed already -->
+                <div class="drag-chip locked" data-block="Menu" data-locked="true"><span class="dh">🔒</span>Menu</div>
+                <div class="drag-chip locked" data-block="Copertina" data-locked="true"><span class="dh">🔒</span>Copertina</div>
+                <div class="drag-chip" draggable="true" data-block="Chi siamo"><span class="dh">⠿</span>Chi siamo</div>
+                <div class="drag-chip" draggable="true" data-block="I nostri servizi"><span class="dh">⠿</span>I nostri servizi</div>
+                <div class="drag-chip" draggable="true" data-block="Lavori realizzati"><span class="dh">⠿</span>Lavori realizzati</div>
+                <div class="drag-chip" draggable="true" data-block="Clienti"><span class="dh">⠿</span>Clienti importanti</div>
+                <div class="drag-chip" draggable="true" data-block="Cosa dicono di noi"><span class="dh">⠿</span>Cosa dicono di noi</div>
+                <div class="drag-chip" draggable="true" data-block="News e articoli"><span class="dh">⠿</span>News e articoli</div>
+                <div class="drag-chip" draggable="true" data-block="Contattaci"><span class="dh">⠿</span>Contattaci</div>
+                <div class="drag-chip" draggable="true" data-block="Dove siamo"><span class="dh">⠿</span>Dove siamo</div>
+                <div class="drag-chip" draggable="true" data-block="Domande frequenti"><span class="dh">⠿</span>Domande frequenti</div>
+                <div class="drag-chip" draggable="true" data-block="I nostri prezzi"><span class="dh">⠿</span>I nostri prezzi</div>
+              </div>
+              <div class="section-progress" id="sectionProgress">
+                <div class="section-progress-head">
+                  <span id="sectionProgressLabel">Sezioni incluse nel piano Base: 0 / 4</span>
+                  <span class="section-progress-plan" id="sectionProgressPlan">Base</span>
+                </div>
+                <div class="section-progress-track">
+                  <div class="section-progress-fill" id="sectionProgressFill"></div>
+                </div>
+                <div class="section-progress-hint" id="sectionProgressHint">Aggiungi fino a 4 sezioni nel piano Base.</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <div class="dnd-lbl" style="margin:0;">La tua pagina — anteprima live</div>
+                <button onclick="shuffleCanvas()" title="Ordine casuale" style="display:flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s;" onmouseover="this.style.borderColor='var(--night)';this.style.color='var(--night)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔀 Mescola</button>
+              </div>
+              <div class="canvas-box" id="canvas">
+                <div class="cv-empty" id="cvEmpty">
+                  <div class="cv-empty-ico">⬆</div>
+                  <div class="cv-empty-txt">Trascina qui le sezioni<br>o clicca per aggiungerle</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 STILE -->
+        <div class="cfg-acc-item">
+          <div class="cfg-acc-hdr" onclick="toggleAcc(3,this)">
+            <div class="cfg-n">3</div>
+            <div class="cfg-titles"><div class="cfg-t">Stile visivo</div><div class="cfg-s" id="s3sub">Che personalità deve avere il sito?</div></div>
+            <div class="cfg-chev">⌄</div>
+          </div>
+          <div class="cfg-body" id="cfg-b3">
+            <div class="style-grid" style="grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="style-opt s-mn" onclick="pickStyle(this,'Minimal & Pulito')"><div class="style-pv"><div style="height:7px;width:36px;background:#222;border-radius:3px;margin:13px 10px 5px;"></div><div style="height:5px;width:55%;background:#e8e8e8;border-radius:2px;margin:0 10px;"></div></div><div class="style-nm">Minimal & Pulito</div><div class="style-sb">Semplice, ordinato, professionale</div></div>
+              <div class="style-opt s-bd" onclick="pickStyle(this,'Deciso & Bold')"><div class="style-pv"><div style="height:7px;width:42px;background:var(--yellow);border-radius:3px;margin:13px 10px 5px;"></div><div style="height:5px;width:50%;background:rgba(255,255,255,.15);border-radius:2px;margin:0 10px;"></div></div><div class="style-nm">Deciso & Bold</div><div class="style-sb">Carattere, impatto, modernità</div></div>
+              <div class="style-opt s-el" onclick="pickStyle(this,'Elegante & Raffinato')"><div class="style-pv"><div style="height:7px;width:40px;background:rgba(255,215,0,.6);border-radius:3px;margin:13px 10px 5px;"></div><div style="height:5px;width:48%;background:rgba(255,255,255,.15);border-radius:2px;margin:0 10px;"></div></div><div class="style-nm">Elegante & Raffinato</div><div class="style-sb">Lusso, cura del dettaglio</div></div>
+              <div class="style-opt s-fr" onclick="pickStyle(this,'Fresco & Colorato')"><div class="style-pv"></div><div class="style-nm">Fresco & Colorato</div><div class="style-sb">Giovane, vivace, come questo sito</div></div>
+              <div class="style-opt s-warm" onclick="pickStyle(this,'Caldo & Accogliente')"><div class="style-pv" style="background:linear-gradient(135deg,#FFF3E0,#FFE0B2);"><div style="height:7px;width:36px;background:#BF360C;border-radius:3px;margin:13px 10px 5px;"></div><div style="height:5px;width:48%;background:rgba(191,54,12,.3);border-radius:2px;margin:0 10px;"></div></div><div class="style-nm">Caldo & Accogliente</div><div class="style-sb">Ideale per ristoranti e wellness</div></div>
+              <div class="style-opt s-auto" onclick="pickStyle(this,'Pensaci tu!')"><div class="style-pv" style="background:linear-gradient(135deg,var(--yellow) 0%,var(--lilac) 50%,var(--mint) 100%);display:flex;align-items:center;justify-content:center;font-size:22px;">🎨</div><div class="style-nm">Pensaci tu!</div><div class="style-sb">Ti proponiamo noi la soluzione migliore</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 ADD-ON -->
+        <div class="cfg-acc-item">
+          <div class="cfg-acc-hdr" onclick="toggleAcc(4,this)">
+            <div class="cfg-n">4</div>
+            <div class="cfg-titles"><div class="cfg-t">Add-on</div><div class="cfg-s" id="s4sub">Potenzia il tuo sito</div></div>
+            <div class="cfg-chev">⌄</div>
+          </div>
+          <div class="cfg-body" id="cfg-b4">
+            <div class="addon-r" onclick="toggleAddon(this,49,'SEO Base')" data-p="49"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">SEO Base</div><div class="addon-sb">Meta tag, sitemap, Google</div></div><div class="addon-pr">+€49</div></div>
+            <div class="addon-r" onclick="toggleAddon(this,29,'Analytics')" data-p="29"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">Analytics</div><div class="addon-sb">Google Analytics 4</div></div><div class="addon-pr">+€29</div></div>
+            <div class="addon-r" onclick="toggleAddon(this,39,'Form avanzato')" data-p="39"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">Form avanzato</div><div class="addon-sb">Preventivi, prenotazioni</div></div><div class="addon-pr">+€39</div></div>
+            <div class="addon-r" onclick="toggleAddon(this,79,'Multilingua')" data-p="79"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">Multilingua IT+EN</div><div class="addon-sb">Versione italiana e inglese</div></div><div class="addon-pr">+€79</div></div>
+            <div class="addon-r addon-spinner" id="revisionAddon" data-p="59" onclick="selectRevisionAddon()">
+              <div class="addon-cb">✓</div>
+              <div class="addon-inf">
+                <div class="addon-nm">Revisioni extra</div>
+                <div class="addon-sb">Fino a 3 round aggiuntivi</div>
+              </div>
+              <div class="stepper" aria-label="Round di revisioni extra">
+                <button type="button" class="stepper-btn" onclick="changeRevisionRounds(-1,event)" aria-label="Diminuisci revisioni extra">−</button>
+                <span class="stepper-val" id="revisionRounds">0</span>
+                <button type="button" class="stepper-btn" onclick="changeRevisionRounds(1,event)" aria-label="Aumenta revisioni extra">+</button>
+              </div>
+              <div class="addon-pr" id="revisionPrice">+€0</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /cfgSteps -->
+
+      <!-- SIDEBAR -->
+      <div class="cfg-sidebar">
+        <span class="sb-lbl">Il tuo preventivo</span>
+        <div class="sb-price" id="totalPrice">€149</div>
+        <div class="sb-sub">una tantum · IVA esclusa</div>
+        <div class="sb-lines">
+          <div class="sb-line" id="sl-plan"><span class="sl-k">Piano Base</span><span class="sl-v">€149</span></div>
+          <div class="sb-pro-note" id="sbProNote">✓ Sezioni illimitate incluse</div>
+          <div class="sb-line" id="sl-set"><span class="sl-k">Settore</span><span class="sl-v">—</span></div>
+          <div class="sb-line" id="sl-blk"><span class="sl-k">Sezioni</span><span class="sl-v">0</span></div>
+          <div class="sb-line" id="sl-sty"><span class="sl-k">Stile</span><span class="sl-v">—</span></div>
+          <div class="sb-line" id="sl-add"><span class="sl-k">Add-on</span><span class="sl-v">—</span></div>
+        </div>
+        <button class="sb-btn" onclick="goCheckout()">Procedi all'acquisto →</button>
+        <div class="sb-note">🔒 Pagamento sicuro · Supporto rapido incluso</div>
+      </div>
+
+    </div><!-- /cfg-layout -->
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="s-wrap">
+    <span class="s-tag reveal">Prezzi</span>
+    <h2 class="s-h2 reveal">Scegli il piano.<br><em>Scala quando vuoi.</em></h2>
+    <div class="price-grid reveal">
+      <div class="plan"><div class="plan-tier">Base</div><div class="plan-price">€149</div><div class="plan-note">una tantum</div><ul class="plan-feats"><li>1 pagina</li><li>Fino a 4 sezioni</li><li>1 revisione</li><li>Mobile responsive</li><li>Consegna 48h</li><li class="no">SEO non incluso</li></ul><a href="#configurator" class="plan-cta plan-out">Configura Base</a></div>
+      <div class="plan feat"><div class="plan-tag">⭐ PIÙ SCELTO</div><div class="plan-tier">Pro</div><div class="plan-price">€349</div><div class="plan-note" style="color:rgba(253,252,255,.3);">una tantum</div><ul class="plan-feats"><li>Fino a 5 pagine</li><li>Sezioni illimitate</li><li>2 revisioni</li><li>Mobile responsive</li><li>Consegna 48h</li><li>SEO base incluso</li></ul><a href="#configurator" class="plan-cta plan-fill">Configura Pro</a></div>
+      <div class="plan"><div class="plan-tier">Business</div><div class="plan-price">€599</div><div class="plan-note">una tantum</div><ul class="plan-feats"><li>Sito completo</li><li>Blog integrato</li><li>3 revisioni</li><li>Mobile responsive</li><li>Consegna 48h</li><li>SEO + Multilingua</li></ul><a href="#configurator" class="plan-cta plan-out">Configura Business</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section id="proof">
+  <div class="s-wrap">
+    <span class="s-tag reveal">Recensioni</span>
+    <h2 class="s-h2 reveal">Chi ha già scelto<br><em>pronto.site</em></h2>
+    <div class="proof-grid reveal">
+      <div class="proof-card"><div class="proof-stars">★★★★★</div><div class="proof-txt">«In 3 giorni avevo il sito della mia pizzeria online. I clienti continuano a dirmi che è bellissimo. Investimento migliore degli ultimi anni.»</div><div class="proof-auth"><div class="proof-av av1">L</div><div><div class="proof-nm">Luca Ferrara</div><div class="proof-rl">Pizzeria Da Luca, Napoli</div></div></div></div>
+      <div class="proof-card"><div class="proof-stars">★★★★★</div><div class="proof-txt">«Come studio di architettura avevamo bisogno di un portfolio elegante, subito. Il risultato ci ha stupiti — professionale e consegnato in anticipo.»</div><div class="proof-auth"><div class="proof-av av2">S</div><div><div class="proof-nm">Sara Bianchi</div><div class="proof-rl">Studio B Architetti, Milano</div></div></div></div>
+      <div class="proof-card"><div class="proof-stars">★★★★★</div><div class="proof-txt">«Finalmente un processo senza riunioni infinite. Ho compilato il brief in 5 minuti, e 2 giorni dopo avevo il sito. Consigliatissimo.»</div><div class="proof-auth"><div class="proof-av av3">M</div><div><div class="proof-nm">Marco Ricci</div><div class="proof-rl">Personal Trainer, Roma</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="s-wrap">
+    <div class="faq-box">
+      <span class="s-tag reveal">FAQ</span>
+      <h2 class="s-h2 reveal">Domande frequenti</h2>
+      <div class="faq-item reveal" onclick="toggleFaq(this)"><div class="faq-q">Cosa succede dopo il pagamento?<span class="faq-ico">+</span></div><div class="faq-a">Ricevi subito via email un link al brief guidato — 10 domande, 5 minuti. Appena completato, il progetto entra in lavorazione.</div></div>
+      <div class="faq-item reveal rd1" onclick="toggleFaq(this)"><div class="faq-q">Davvero 48 ore?<span class="faq-ico">+</span></div><div class="faq-a">Sì, per Base e Pro. Il conteggio parte dalla ricezione del brief compilato. Business può richiedere fino a 5 giorni lavorativi.</div></div>
+      <div class="faq-item reveal rd2" onclick="toggleFaq(this)"><div class="faq-q">Posso chiedere modifiche?<span class="faq-ico">+</span></div><div class="faq-a">Ogni piano include revisioni (1–3). Revisioni aggiuntive si acquistano a €59 ciascuna, anche dopo la consegna.</div></div>
+      <div class="faq-item reveal rd3" onclick="toggleFaq(this)"><div class="faq-q">Chi gestisce l'hosting?<span class="faq-ico">+</span></div><div class="faq-a">Consegniamo i file pronti per qualsiasi hosting. Deploy gratuito su Netlify incluso.</div></div>
+      <div class="faq-item reveal" onclick="toggleFaq(this)"><div class="faq-q">Che tecnologia viene usata?<span class="faq-ico">+</span></div><div class="faq-a">HTML, CSS e JavaScript puro — massima velocità. Su richiesta: WordPress o React. Sempre mobile-first.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="final-cta">
+  <div class="urgency"><div class="urg-dot"></div>Prossimi slot: questa settimana</div>
+  <h2 class="cta-h2">Il tuo sito.<br><em id="deliveryHeadline">Pronto venerdì.</em></h2>
+  <p class="cta-sub" id="deliverySub">Configura in 2 minuti, vai live in 48 ore.</p>
+  <a href="#configurator" class="btn-y" style="font-size:16px;padding:18px 44px;">Inizia ora — da €149 →</a>
+</section>
+
+<!-- SUPPORTO -->
+<section id="supporto" style="background:var(--card);border-top:1px solid var(--border);padding:80px 48px;">
+  <div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+    <div class="reveal">
+      <span class="s-tag">Hai dubbi?</span>
+      <h2 class="s-h2" style="margin-bottom:20px;">Parla con<br><em>una persona vera.</em></h2>
+      <p style="font-size:15px;line-height:1.75;color:var(--muted);margin-bottom:8px;">Non sei sicuro di cosa scegliere? Nessun problema — siamo qui per aiutarti a capire qual è il sito giusto per te, senza impegno e senza gergo tecnico.</p>
+      <p style="font-size:14px;color:var(--muted);">Di solito rispondiamo entro poche ore.</p>
+    </div>
+    <div class="reveal rd1">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <a href="mailto:ciao@pronto.site" style="display:flex;align-items:center;gap:16px;background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--night)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">✉️</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">Scrivici una email</div>
+            <div style="font-size:12px;color:var(--muted);">ciao@pronto.site — risposta in giornata</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:18px;">→</div>
+        </a>
+        <a href="https://wa.me/390000000000" target="_blank" style="display:flex;align-items:center;gap:16px;background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--night)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💬</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">Scrivici su WhatsApp</div>
+            <div style="font-size:12px;color:var(--muted);">Risposta veloce, nessuna attesa</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:18px;">→</div>
+        </a>
+        <div style="display:flex;align-items:center;gap:16px;background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--lilac);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📞</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">Chiamaci</div>
+            <div style="font-size:12px;color:var(--muted);">Lun–Ven, 9:00–18:00 · +39 000 000 0000</div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--muted);padding-top:4px;">🔒 Nessuna pressione — nessun obbligo di acquisto</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo" style="font-size:18px;">pronto<em style="color:rgba(253,252,255,.25);">.site</em></div>
+  <div class="ft-links"><a href="#">Privacy</a><a href="#">Termini</a><a href="#">Contatti</a></div>
+  <div>© 2025 pronto.site</div>
+</footer>
