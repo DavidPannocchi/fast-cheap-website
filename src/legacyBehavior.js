@@ -14,7 +14,7 @@ cleanupFns.push(() => window.removeEventListener('scroll',handleNavScroll));
 
 // ── TOAST ──
 let toastTimer=null;
-function showToast(msg,icon='🔒'){
+function showToast(msg,icon='🔒',variant='default'){
   const t=document.getElementById('toast');
   const ico=document.querySelector('.toast-ico');
   document.getElementById('toast-msg').textContent=msg;
@@ -22,6 +22,8 @@ function showToast(msg,icon='🔒'){
     ico.textContent=icon;
     ico.style.display=icon?'inline':'none';
   }
+  t.classList.remove('success');
+  if(variant==='success') t.classList.add('success');
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
@@ -195,7 +197,7 @@ function shuffleCanvas(){
   if(movable.length<2){
     const available=Array.from(document.querySelectorAll('.palette .drag-chip:not(.used):not([data-locked])'));
     if(available.length>0){
-      const toAdd=Math.min(3,available.length);
+      const toAdd=Math.min(2,available.length);
       for(let i=0;i<toAdd;i++){
         const idx=Math.floor(Math.random()*available.length);
         const chip=available.splice(idx,1)[0];
@@ -249,6 +251,7 @@ function initCanvas(){
 function addBlockToCanvas(name){
   const def=BLOCKS[name];if(!def)return;
   if(ST.blocks.includes(name))return;
+  const prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length;
   cvEmpty.style.display='none';
   const wrap=document.createElement('div');
   wrap.className='cb-wrap';wrap.dataset.block=name;
@@ -276,7 +279,7 @@ function addBlockToCanvas(name){
   }
   canvas.appendChild(wrap);
   ST.blocks.push(name);
-  updateBlocksSummary();
+  updateBlocksSummary(prevCount);
 }
 
 function removeBlock(name,btn){
@@ -296,24 +299,27 @@ function removeBlock(name,btn){
 }
 
 function updateProBadges(){
-  Array.from(canvas.querySelectorAll('.cb-wrap')).forEach((wrap,idx)=>{
-    const isPro=idx>=BASE_SECTION_LIMIT;
+  let userIndex=0;
+  Array.from(canvas.querySelectorAll('.cb-wrap')).forEach(wrap=>{
+    if(wrap.dataset.block==='Menu'||wrap.dataset.block==='Copertina') return;
+    const isPro=userIndex>=BASE_SECTION_LIMIT;
     wrap.classList.toggle('pro-block',isPro);
     const toolbar=wrap.querySelector('.cb-toolbar');
     let badge=wrap.querySelector('.cb-pro-badge');
     if(isPro&&!badge&&toolbar){
       badge=document.createElement('span');
       badge.className='cb-pro-badge';
-      badge.textContent='PRO';
+      badge.textContent='➕ PRO';
       const remove=toolbar.querySelector('.cb-remove');
       toolbar.insertBefore(badge,remove||null);
     }
     if(!isPro&&badge)badge.remove();
+    userIndex++;
   });
 }
 
-function updatePlanSummary(prevCount=ST.blocks.length){
-  const count=ST.blocks.length;
+function updatePlanSummary(prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length){
+  const count=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length;
   const isPro=count>BASE_SECTION_LIMIT;
   ST.plan=isPro?'pro':'base';
   ST.base=isPro?PRO_PRICE:BASE_PRICE;
@@ -330,8 +336,16 @@ function updatePlanSummary(prevCount=ST.blocks.length){
     progress.classList.toggle('warn',count===BASE_SECTION_LIMIT);
     progress.classList.toggle('pro',isPro);
   }
-  if(label)label.textContent=`Sezioni incluse nel piano Base: ${count} / ${BASE_SECTION_LIMIT}`;
-  if(fill)fill.style.width=Math.min(100,(count/BASE_SECTION_LIMIT)*100)+'%';
+  if(label)label.textContent=isPro
+    ?`${count} sezioni — Pacchetto PRO attivo`
+    :`${count} / ${BASE_SECTION_LIMIT} sezioni nel piano Base`;
+  if(fill){
+    const width=Math.min(100,(count/BASE_SECTION_LIMIT)*100);
+    fill.style.left='0';
+    fill.style.width=width+'%';
+  }
+  const excess=document.getElementById('sectionProgressExcess');
+  if(excess)excess.style.display=isPro?'block':'none';
   if(hint){
     hint.textContent=count===BASE_SECTION_LIMIT
       ?'La prossima sezione attiverà il piano PRO (sezioni illimitate)'
@@ -346,19 +360,25 @@ function updatePlanSummary(prevCount=ST.blocks.length){
   }
   if(proNote)proNote.classList.toggle('show',isPro);
 
+  updateProIncludedAddons(isPro);
   updateProBadges();
   syncAddonsSummary();
 
   if(prevCount<=BASE_SECTION_LIMIT&&count>BASE_SECTION_LIMIT){
-    showToast('✨ Sei passato al Pacchetto PRO! Sezioni illimitate sbloccate.','');
+    showToast('Sei passato al Pacchetto PRO! Sezioni illimitate sbloccate.','✓','success');
+  }
+  if(prevCount<BASE_SECTION_LIMIT&&count===BASE_SECTION_LIMIT){
+    progress?.classList.add('sparkle');
+    setTimeout(()=>progress?.classList.remove('sparkle'),1400);
   }
 }
 
-function updateBlocksSummary(prevCount=ST.blocks.length){
+function updateBlocksSummary(prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length){
+  const userCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length;
   const v=document.querySelector('#sl-blk .sl-v');
-  v.textContent=ST.blocks.length>0?ST.blocks.length+' sezioni':'0';
-  v.className='sl-v'+(ST.blocks.length>0?' hi':'');
-  document.getElementById('s2sub').textContent=ST.blocks.length>0?`${ST.blocks.length} sezioni nella canvas`:'Trascina le sezioni sulla canvas';
+  v.textContent=userCount>0?userCount+' sezioni':'0';
+  v.className='sl-v'+(userCount>0?' hi':'');
+  document.getElementById('s2sub').textContent=userCount>0?`${userCount} sezioni nella canvas`:'Trascina le sezioni sulla canvas';
   updatePlanSummary(prevCount);
 }
 
@@ -443,47 +463,137 @@ function onCbDragEnd(){
 
 // ── ADDONS ──
 function syncAddonsSummary(){
-  const revisionTotal=ST.revisionRounds*REVISION_PRICE;
+  const revisionTotal=ST.plan==='pro' ? 0 : ST.revisionRounds*REVISION_PRICE;
   ST.addons=ST.flatAddonTotal+revisionTotal;
-  ST.addonNames=[...ST.flatAddonNames];
-  if(ST.revisionRounds>0){
-    ST.addonNames.push(`Revisione extra x${ST.revisionRounds}`);
+  const addonNames=[...ST.flatAddonNames];
+  if(ST.plan==='pro'){
+    addonNames.unshift('SEO Base incluso', '2 revisioni incluse');
+  } else if(ST.revisionRounds>0){
+    addonNames.push(`Revisione extra x${ST.revisionRounds}`);
   }
   const v=document.querySelector('#sl-add .sl-v');
   v.textContent=ST.addons>0?'+€'+ST.addons:'—';
   v.className='sl-v'+(ST.addons>0?' hi':'');
   document.getElementById('totalPrice').textContent='€'+(ST.base+ST.addons);
-  document.getElementById('s4sub').textContent=ST.addonNames.length?ST.addonNames.join(', '):'Potenzia il tuo sito';
+  document.getElementById('s4sub').textContent=addonNames.length?addonNames.join(', '):'Potenzia il tuo sito';
+}
+
+function setAddonState(el,on,price,name,free=false){
+  if(!el) return;
+  const wasOn=el.classList.contains('on');
+  const wasFree=el.dataset.free==='true';
+  if(on){
+    if(!wasOn){
+      el.classList.add('on');
+      if(free){
+        el.dataset.free='true';
+      } else {
+        ST.flatAddonTotal+=price;
+        ST.flatAddonNames.push(name);
+        el.dataset.free='false';
+      }
+    } else if(free && !wasFree){
+      ST.flatAddonTotal-=price;
+      ST.flatAddonNames=ST.flatAddonNames.filter(n=>n!==name);
+      el.dataset.free='true';
+    } else if(!free && wasFree){
+      ST.flatAddonTotal+=price;
+      ST.flatAddonNames.push(name);
+      el.dataset.free='false';
+    }
+  } else {
+    if(wasOn){
+      el.classList.remove('on');
+      if(!wasFree){
+        ST.flatAddonTotal-=price;
+        ST.flatAddonNames=ST.flatAddonNames.filter(n=>n!==name);
+      }
+      el.dataset.free='false';
+    }
+  }
+}
+
+function disableRevisionStepper(disabled){
+  const buttons=document.querySelectorAll('#revisionAddon .stepper-btn');
+  buttons.forEach(btn=>btn.disabled=disabled);
+  const row=document.getElementById('revisionAddon');
+  if(row) row.classList.toggle('fixed-addon',disabled);
+}
+
+function updateProIncludedAddons(isPro){
+  const seoAddon=document.getElementById('seoAddon');
+  const revisionRow=document.getElementById('revisionAddon');
+  const revisionValue=document.getElementById('revisionRounds');
+  const revisionPrice=document.getElementById('revisionPrice');
+  const revisionName=revisionRow?.querySelector('.addon-nm');
+  const revisionSub=revisionRow?.querySelector('.addon-sb');
+
+  if(isPro){
+    if(seoAddon){
+      seoAddon.dataset.fixed='true';
+      setAddonState(seoAddon,true,49,'SEO Base',true);
+      seoAddon.querySelector('.addon-pr').textContent='Incluso';
+    }
+    if(revisionRow){
+      revisionRow.dataset.fixed='true';
+      revisionRow.classList.add('on');
+      if(revisionName) revisionName.textContent='2 revisioni incluse';
+      if(revisionSub) revisionSub.textContent='Incluso nel pacchetto PRO';
+      if(revisionValue) revisionValue.textContent='2';
+      if(revisionPrice) revisionPrice.textContent='Incluso';
+      ST.revisionRounds=2;
+      disableRevisionStepper(true);
+    }
+  } else {
+    if(revisionRow){
+      if(revisionValue) revisionValue.textContent=ST.revisionRounds;
+      if(revisionPrice) revisionPrice.textContent=ST.revisionRounds>0?'+€'+((ST.revisionRounds+1)*REVISION_PRICE):'+€'+REVISION_PRICE;
+    }
+    if(seoAddon){
+      seoAddon.dataset.fixed='false';
+      seoAddon.removeAttribute('data-fixed');
+      seoAddon.querySelector('.addon-pr').textContent='+€49';
+      if(seoAddon.dataset.free==='true'){
+        setAddonState(seoAddon,false,49,'SEO Base',true);
+      }
+    }
+    if(revisionRow){
+      revisionRow.dataset.fixed='false';
+      revisionRow.removeAttribute('data-fixed');
+      if(revisionName) revisionName.textContent='Revisioni extra';
+      if(revisionSub) revisionSub.textContent='Fino a 3 round aggiuntivi';
+      ST.revisionRounds=0;
+      if(revisionValue) revisionValue.textContent=0;
+      if(revisionPrice) revisionPrice.textContent='+€'+REVISION_PRICE;
+      revisionRow.classList.remove('on');
+      disableRevisionStepper(false);
+    }
+  }
 }
 
 function toggleAddon(el,price,name){
-  el.classList.toggle('on');
-  const on=el.classList.contains('on');
-  if(on){
-    ST.flatAddonTotal+=price;
-    ST.flatAddonNames.push(name);
-  } else {
-    ST.flatAddonTotal-=price;
-    ST.flatAddonNames=ST.flatAddonNames.filter(n=>n!==name);
-  }
+  if(el.dataset.fixed==='true') return;
+  setAddonState(el,!el.classList.contains('on'),price,name,false);
   syncAddonsSummary();
 }
 
 function changeRevisionRounds(delta,event){
   event?.stopPropagation();
+  if(ST.plan==='pro') return;
   const next=Math.max(0,Math.min(MAX_REVISION_ROUNDS,ST.revisionRounds+delta));
-  if(next===ST.revisionRounds)return;
+  if(next===ST.revisionRounds) return;
   ST.revisionRounds=next;
   const row=document.getElementById('revisionAddon');
   const value=document.getElementById('revisionRounds');
   const price=document.getElementById('revisionPrice');
-  if(row)row.classList.toggle('on',ST.revisionRounds>0);
-  if(value)value.textContent=ST.revisionRounds;
-  if(price)price.textContent=ST.revisionRounds>0?'+€'+(ST.revisionRounds*REVISION_PRICE):'+€0';
+  if(row) row.classList.toggle('on',ST.revisionRounds>0);
+  if(value) value.textContent=ST.revisionRounds;
+  if(price) price.textContent=ST.revisionRounds>0?'+€'+((ST.revisionRounds+1)*REVISION_PRICE):'+€'+REVISION_PRICE;
   syncAddonsSummary();
 }
 
 function selectRevisionAddon(){
+  if(ST.plan==='pro') return;
   if(ST.revisionRounds===0){
     changeRevisionRounds(1);
   }

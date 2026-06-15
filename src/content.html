@@ -222,11 +222,12 @@
               </div>
               <div class="section-progress" id="sectionProgress">
                 <div class="section-progress-head">
-                  <span id="sectionProgressLabel">Sezioni incluse nel piano Base: 0 / 4</span>
+                  <span id="sectionProgressLabel">0 sezioni — Base 0/4</span>
                   <span class="section-progress-plan" id="sectionProgressPlan">Base</span>
                 </div>
                 <div class="section-progress-track">
                   <div class="section-progress-fill" id="sectionProgressFill"></div>
+                  <div class="section-progress-excess" id="sectionProgressExcess"></div>
                 </div>
                 <div class="section-progress-hint" id="sectionProgressHint">Aggiungi fino a 4 sezioni nel piano Base.</div>
               </div>
@@ -271,7 +272,7 @@
             <div class="cfg-chev">⌄</div>
           </div>
           <div class="cfg-body" id="cfg-b4">
-            <div class="addon-r" onclick="toggleAddon(this,49,'SEO Base')" data-p="49"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">SEO Base</div><div class="addon-sb">Meta tag, sitemap, Google</div></div><div class="addon-pr">+€49</div></div>
+            <div class="addon-r" id="seoAddon" onclick="toggleAddon(this,49,'SEO Base')" data-p="49"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">SEO Base</div><div class="addon-sb">Meta tag, sitemap, Google</div></div><div class="addon-pr">+€49</div></div>
             <div class="addon-r" onclick="toggleAddon(this,29,'Analytics')" data-p="29"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">Analytics</div><div class="addon-sb">Google Analytics 4</div></div><div class="addon-pr">+€29</div></div>
             <div class="addon-r" onclick="toggleAddon(this,39,'Form avanzato')" data-p="39"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">Form avanzato</div><div class="addon-sb">Preventivi, prenotazioni</div></div><div class="addon-pr">+€39</div></div>
             <div class="addon-r" onclick="toggleAddon(this,79,'Multilingua')" data-p="79"><div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">Multilingua IT+EN</div><div class="addon-sb">Versione italiana e inglese</div></div><div class="addon-pr">+€79</div></div>
@@ -286,7 +287,7 @@
                 <span class="stepper-val" id="revisionRounds">0</span>
                 <button type="button" class="stepper-btn" onclick="changeRevisionRounds(1,event)" aria-label="Aumenta revisioni extra">+</button>
               </div>
-              <div class="addon-pr" id="revisionPrice">+€0</div>
+              <div class="addon-pr" id="revisionPrice">+€59</div>
             </div>
           </div>
         </div>
