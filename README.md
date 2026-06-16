@@ -38,25 +38,17 @@ Se il sito non appare online:
 
 ```
 src/
-├── main.jsx          # Entry point React
-├── App.jsx           # Componente principale
-├── content.html      # HTML del sito
+├── main.js           # Entry point JavaScript
 ├── legacyBehavior.js # JavaScript interattivo
 └── styles.css        # CSS
 
-dist/                 # Build di produzione (generato automaticamente)
-.github/workflows/    # GitHub Actions automation
+ dist/                 # Build di produzione (generato automaticamente)
+ .github/workflows/    # GitHub Actions automation
 ```
 
 ## Stack Tecnologico
 
-- **React** - UI framework
 - **Vite** - Build tool ultra-veloce
-- **Vanilla JS** - Interattività legacy
-- **CSS Puro** - Styling
-
-## Note
-
-- La cartella `dist/` viene generata automaticamente dal build
-- Non committare `dist/` — viene rigenerata per ogni deploy
+- **HTML / CSS** - Markup e styling
+- **Vanilla JS** - Interattività- Non committare `dist/` — viene rigenerata per ogni deploy
 - Le modifiche a `src/` vengono compilate automaticamente dal workflow
