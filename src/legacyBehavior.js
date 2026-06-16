@@ -33,7 +33,7 @@ function showToast(msg,icon='🔒',variant='default'){
 const BASE_PRICE=149;
 const PRO_PRICE=349;
 const BASE_SECTION_LIMIT=4;
-const ST={base:BASE_PRICE,plan:'base',addons:0,flatAddonTotal:0,revisionRounds:0,settore:null,stile:null,blocks:[],addonNames:[],flatAddonNames:[]};
+const ST={base:BASE_PRICE,plan:'base',addons:0,flatAddonTotal:0,revisionRounds:0,settore:null,stile:null,blocks:[],flatAddonNames:[]};
 const REVISION_PRICE=59;
 const MAX_REVISION_ROUNDS=3;
 const FIXED_SECTION_MSG='Questa sezione ha una posizione fissa';
@@ -645,7 +645,7 @@ function confirmCheckout(){
 }
 function checkoutFinalize(){
   const total=ST.base+ST.addons;
-  alert(`✅ Totale: €${total}\n\nSettore: ${ST.settore||'—'}\nSezioni: ${ST.blocks.join(' → ')}\nStile: ${ST.stile||'—'}\nAdd-on: ${ST.addonNames.join(', ')||'—'}\n\n[Stripe checkout — in arrivo]`);
+  alert(`✅ Totale: €${total}\n\nSettore: ${ST.settore||'—'}\nSezioni: ${ST.blocks.join(' → ')}\nStile: ${ST.stile||'—'}\nAdd-on: ${ST.flatAddonNames.join(', ')||'—'}\n\n[Stripe checkout — in arrivo]`);
 }
 
 // ── FAQ ──
