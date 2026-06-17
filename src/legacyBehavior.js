@@ -64,7 +64,7 @@ function getDeliveryDate(){
   const hl=document.getElementById('deliveryHeadline');
   const sub=document.getElementById('deliverySub');
   if(hl) hl.textContent=`Pronto ${giorno}.`;
-  if(sub) sub.textContent=`Ordina oggi — il tuo sito è online entro ${giorno} ${data} ${mese}.`;
+  if(sub) sub.textContent=`Ordina oggi, il tuo sito sarà online entro ${giorno} ${data} ${mese}.`;
   // also update hero bleed badge if visible
   const bbv=document.querySelector('.bb-val');
   if(bbv) bbv.innerHTML=`entro ${giorno} ⚡`;
