@@ -6,10 +6,25 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "stripe": "^22.3.2",
+    "vite": "latest"
   },
-  "devDependencies": {}
+  "name": "fast-cheap-website",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidPannocchi/fast-cheap-website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/DavidPannocchi/fast-cheap-website/issues"
+  },
+  "homepage": "https://github.com/DavidPannocchi/fast-cheap-website#readme"
 }
-
