@@ -641,11 +641,36 @@ function closeModalAndOpenAddons(){
 }
 function confirmCheckout(){
   closeModal();
-  checkoutFinalize();
+  void checkoutFinalize();
 }
-function checkoutFinalize(){
+async function vaiAlPagamento() {
+  try {
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId: 'price_1TwNbp4vV2fmAlIAabpyBKjx',
+        settore: ST.settore,
+        blocchi: ST.blocks.join(','),
+        stile: ST.stile,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data?.url) {
+      throw new Error(data?.error || 'Impossibile avviare il pagamento.');
+    }
+
+    window.location.href = data.url;
+  } catch (error) {
+    console.error(error);
+    showToast(error.message || 'Errore durante il pagamento.');
+  }
+}
+async function checkoutFinalize(){
   const total=ST.base+ST.addons;
-  alert(`✅ Totale: €${total}\n\nSettore: ${ST.settore||'—'}\nSezioni: ${ST.blocks.join(' → ')}\nStile: ${ST.stile||'—'}\nAdd-on: ${ST.addonNames.join(', ')||'—'}\n\n[Stripe checkout — in arrivo]`);
+  showToast(`Avvio checkout per €${total}…`);
+  await vaiAlPagamento();
 }
 
 // ── FAQ ──
