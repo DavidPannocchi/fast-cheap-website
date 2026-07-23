@@ -40,13 +40,21 @@ nav.scrolled{background:rgba(26,21,39,.85);backdrop-filter:blur(16px);}
 ═══════════════════════════════ */
 #hero{
   min-height:100vh;
-  background:var(--night);
-  position:relative;overflow:hidden;
+  position:relative;
+  overflow:hidden;
   display:grid;
   grid-template-columns:1fr 1fr;
   align-items:center;
   padding:120px 48px 80px;
   gap:40px;
+  background-image:url('/assets/hero banner bg.webp');
+  background-size:cover;
+  background-position:center center;
+  background-repeat:no-repeat;
+}
+
+.hero-right{
+  display:flex;justify-content:center;align-items:center;
 }
 
 /* Ambient glow orbs */
