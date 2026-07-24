@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const TALLY_FORM_ID = 'TUO_FORM_ID';
+const TALLY_FORM_ID = 'QKaQyY';
 
 export default function BriefPage() {
   const [summary, setSummary] = useState('Sto caricando il riepilogo del tuo ordine…');
