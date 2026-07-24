@@ -649,7 +649,7 @@ async function vaiAlPagamento() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        priceId: 'price_1TwNbp4vV2fmAlIAabpyBKjx',
+        priceId: 'price_1TwmZR6AHTHA0VN1neD75jFV',
         settore: ST.settore,
         blocchi: ST.blocks.join(','),
         stile: ST.stile,
