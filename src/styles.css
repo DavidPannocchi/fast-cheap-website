@@ -15,6 +15,32 @@
 html{scroll-behavior:smooth}
 body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
 
+.brief-page{min-height:100vh;background:linear-gradient(135deg,var(--night) 0%,#2b2141 45%,var(--night2) 100%);color:var(--white)}
+.brief-nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;background:rgba(26,21,39,.75);backdrop-filter:blur(16px)}
+.brief-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-1px;color:var(--white);text-decoration:none}
+.brief-logo em{font-style:normal;color:rgba(245,240,168,.5)}
+.brief-nav-pill{background:var(--yellow);color:var(--night)}
+.brief-main{max-width:1180px;margin:0 auto;padding:48px 24px 80px;display:grid;grid-template-columns:1fr;gap:24px}
+.brief-card{background:rgba(253,252,255,.95);color:var(--text);border:1px solid rgba(255,255,255,.22);border-radius:28px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.16)}
+.brief-card-summary h1,.brief-card-form h2{font-family:'Syne',sans-serif;letter-spacing:-.8px;margin:10px 0 12px}
+.brief-card-summary h1{font-size:clamp(28px,3vw,40px)}
+.brief-card-form h2{font-size:clamp(24px,2.5vw,32px)}
+.brief-intro,.brief-form-heading p{font-size:15px;line-height:1.7;color:var(--muted);max-width:720px}
+.brief-summary-box{margin-top:24px;padding:20px 22px;border-radius:18px;background:linear-gradient(135deg,var(--card),#f7f4ff);border:1px solid var(--border)}
+.brief-summary-line{font-size:16px;line-height:1.7;color:var(--night)}
+.brief-hint,.brief-error{margin-top:10px;font-size:14px;color:var(--muted)}
+.brief-error{color:#c25050}
+.brief-form-heading{margin-bottom:20px}
+.brief-iframe{width:100%;min-height:900px;border:0;border-radius:20px;background:var(--white)}
+.brief-loading{padding:40px 20px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:18px;background:var(--white)}
+
+@media (max-width: 780px){
+  .brief-nav{padding:18px 20px}
+  .brief-main{padding:24px 16px 56px}
+  .brief-card{padding:24px 18px;border-radius:22px}
+  .brief-iframe{min-height:760px}
+}
+
 /* ── NAV ── */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:200;
