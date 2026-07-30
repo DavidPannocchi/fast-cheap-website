@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Il tuo ordine | Fast & Cheap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display:ital@0;1&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./ordine.css" />
+  </head>
+  <body>
+    <main class="order-shell">
+      <header class="order-hero">
+        <div class="order-badge">Area cliente</div>
+        <h1>Il tuo ordine</h1>
+        <p>Qui trovi lo stato del progetto, gli aggiornamenti e i prossimi passi in modo semplice e chiaro.</p>
+      </header>
+
+      <section class="order-card order-card-summary" aria-live="polite">
+        <div class="order-card-header">
+          <p class="eyebrow">Stato attuale</p>
+          <h2 id="status-title">Stiamo controllando il tuo ordine…</h2>
+        </div>
+
+        <div class="order-summary-grid">
+          <div>
+            <p class="label">Cliente</p>
+            <p id="customer-name" class="value">—</p>
+          </div>
+          <div>
+            <p class="label">Pacchetto</p>
+            <p id="package-name" class="value">—</p>
+          </div>
+          <div>
+            <p class="label">Consegna prevista</p>
+            <p id="delivery-date" class="value">—</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="order-card stepper-card">
+        <ol class="stepper" aria-label="Avanzamento ordine">
+          <li class="step" data-step="ricevuto">
+            <span class="step-index">1</span>
+            <div>
+              <strong>Ricevuto</strong>
+              <p>Abbiamo preso in carico l’ordine.</p>
+            </div>
+          </li>
+          <li class="step" data-step="lavorazione">
+            <span class="step-index">2</span>
+            <div>
+              <strong>In lavorazione</strong>
+              <p>Stiamo preparando il sito.</p>
+            </div>
+          </li>
+          <li class="step" data-step="controllo">
+            <span class="step-index">3</span>
+            <div>
+              <strong>In controllo</strong>
+              <p>Controlliamo ogni dettaglio.</p>
+            </div>
+          </li>
+          <li class="step" data-step="pronto">
+            <span class="step-index">4</span>
+            <div>
+              <strong>Pronto per te</strong>
+              <p>La tua anteprima è pronta.</p>
+            </div>
+          </li>
+          <li class="step" data-step="consegnato">
+            <span class="step-index">5</span>
+            <div>
+              <strong>Consegnato</strong>
+              <p>Il lavoro è online.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="order-card state-card">
+        <div class="stato-blocco is-active" data-stato="loading">
+          <h3>Stiamo caricando il tuo ordine…</h3>
+          <p>Un attimo di pazienza, stiamo cercando i dettagli più recenti.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="pagato">
+          <h3>Ordine ricevuto</h3>
+          <p>Abbiamo raccolto tutto il necessario e stiamo preparando il primo passaggio del progetto.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="brief_ricevuto">
+          <h3>Brief ricevuto, grazie!</h3>
+          <p>Il tuo brief è arrivato in modo chiaro. Adesso ci mettiamo al lavoro con il resto della costruzione.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="in_lavorazione">
+          <h3>Il tuo sito è in costruzione</h3>
+          <p>Stiamo dando forma all’idea e scegliendo le parti più importanti da mettere in evidenza.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="in_controllo">
+          <h3>Ultimo controllo in corso</h3>
+          <p>Stiamo verificando il risultato finale con cura, così che tutto sia pronto per te.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="pronto_anteprima">
+          <h3>La tua anteprima è pronta</h3>
+          <p>Puoi dare un’occhiata al risultato e dirci se vuoi cambiare qualcosa.</p>
+          <div class="action-box" id="preview-actions">
+            <a id="preview-link" class="primary-btn" href="#">Apri l’anteprima</a>
+            <button id="approve-order" class="primary-btn" type="button">Approva</button>
+            <button id="request-revision" class="secondary-btn" type="button">Richiedi revisione</button>
+          </div>
+          <p id="revision-counter" class="muted-copy">Hai ancora N revisioni incluse</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="revisione_richiesta">
+          <h3>Stiamo applicando le modifiche</h3>
+          <p>Abbiamo registrato la tua richiesta e stiamo preparandoci a rifinire i dettagli.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="approvato">
+          <h3>Tutto approvato!</h3>
+          <p>Perfetto, la tua scelta è confermata. Adesso passiamo all’ultimo passaggio.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="consegnato">
+          <h3>Il tuo sito è online 🎉</h3>
+          <p>Il sito è attivo e pronto da condividere. Se vuoi, possiamo aggiungere ulteriori servizi in un secondo momento.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="chiuso_supporto">
+          <h3>Il tuo sito è attivo</h3>
+          <p>Il progetto è in funzione e puoi continuare a lavorare con noi per eventuali piccoli aggiornamenti.</p>
+        </div>
+
+        <div class="stato-blocco" data-stato="fallback">
+          <h3>Abbiamo ricevuto il tuo ordine</h3>
+          <p>Stiamo raccogliendo i dettagli. Torna a trovarci tra poco per vedere gli aggiornamenti.</p>
+        </div>
+      </section>
+
+      <section class="order-card info-card">
+        <p class="eyebrow">Nota</p>
+        <p class="muted-copy">Se hai bisogno di aiuto, scrivici e ti aiutiamo a trovare la prossima mossa più semplice per te.</p>
+      </section>
+    </main>
+
+    <script src="./ordine.js"></script>
+  </body>
+</html>
