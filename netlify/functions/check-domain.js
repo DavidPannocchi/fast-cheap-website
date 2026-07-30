@@ -14,9 +14,7 @@ const RDAP_SERVERS = {
 const FALLBACK_BOOTSTRAP = (domain) => `https://rdap.org/domain/${domain}`;
 
 function normalizeDomain(input) {
-  return input
-    .toLowerCase()
-    .trim();
+  return input.toLowerCase().trim();
 }
 
 function validDomainFormat(domain) {
@@ -40,16 +38,15 @@ async function queryRdap(domain, server, timeoutMs = 4000) {
   }
 }
 
-export default async (req, context) => {
-  const url = new URL(req.url);
-  const domainRaw = url.searchParams.get('domain') || '';
+exports.handler = async (event) => {
+  const domainRaw = event.queryStringParameters?.domain || '';
   const domain = normalizeDomain(domainRaw);
 
   if (!domain || !validDomainFormat(domain)) {
-    return new Response(JSON.stringify({ status: 'non_verificabile', domain, error: 'dominio non valido' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: 'non_verificabile', domain, error: 'dominio non valido' }),
+    };
   }
 
   const parts = domain.split('.');
@@ -62,57 +59,41 @@ export default async (req, context) => {
       : await queryRdap(domain, FALLBACK_BOOTSTRAP(domain));
 
     if (res.status === 404) {
-      return new Response(JSON.stringify({ status: 'libero', domain }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return { statusCode: 200, body: JSON.stringify({ status: 'libero', domain }) };
     }
     if (res.status === 200) {
-      return new Response(JSON.stringify({ status: 'occupato', domain }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return { statusCode: 200, body: JSON.stringify({ status: 'occupato', domain }) };
     }
 
-    return new Response(JSON.stringify({ status: 'non_verificabile', domain, error: `status_${res.status}` }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: 'non_verificabile', domain, error: `status_${res.status}` }),
+    };
   } catch (err) {
     if (!server) {
-      return new Response(JSON.stringify({ status: 'non_verificabile', domain, error: 'bootstrap_failed' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'non_verificabile', domain, error: 'bootstrap_failed' }),
+      };
     }
 
     try {
       const fallbackRes = await queryRdap(domain, FALLBACK_BOOTSTRAP(domain));
       if (fallbackRes.status === 404) {
-        return new Response(JSON.stringify({ status: 'libero', domain }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return { statusCode: 200, body: JSON.stringify({ status: 'libero', domain }) };
       }
       if (fallbackRes.status === 200) {
-        return new Response(JSON.stringify({ status: 'occupato', domain }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return { statusCode: 200, body: JSON.stringify({ status: 'occupato', domain }) };
       }
-      return new Response(JSON.stringify({ status: 'non_verificabile', domain, error: `status_${fallbackRes.status}` }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'non_verificabile', domain, error: `status_${fallbackRes.status}` }),
+      };
     } catch (fallbackErr) {
-      return new Response(JSON.stringify({ status: 'non_verificabile', domain, error: 'unreachable' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: 'non_verificabile', domain, error: 'unreachable' }),
+      };
     }
   }
-};
-
-export const config = {
-  path: '/api/check-domain',
 };

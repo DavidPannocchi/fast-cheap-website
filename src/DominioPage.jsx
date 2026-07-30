@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 const DOMAIN_CHECK_DELAY = 500;
 const MAKE_DOMAIN_WEBHOOK_URL = 'https://hook.eu1.make.com/TUO_WEBHOOK_DOMINIO';
-const CHECK_DOMAIN_PATH = '/api/check-domain';
+const CHECK_DOMAIN_PATH = '/.netlify/functions/check-domain';
 
 function normalizeInput(value) {
   return value

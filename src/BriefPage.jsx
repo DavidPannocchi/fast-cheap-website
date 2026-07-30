@@ -33,7 +33,12 @@ export default function BriefPage() {
           throw new Error(data?.error || 'Impossibile recuperare il riepilogo del pagamento.');
         }
 
-        const packageLabel = Number(data.amount) >= 349 ? 'Pacchetto Pro' : 'Pacchetto Base';
+        const packageLabels = {
+          vetrina: 'Vetrina',
+          pro: 'Pro',
+          'su-misura': 'Su Misura',
+        };
+        const packageLabel = packageLabels[(data.tier || '').toLowerCase()] || 'Il tuo pacchetto';
         const blocks = (data.blocchi || '').split(',').filter(Boolean).join(' • ');
         const style = data.stile || 'Da definire';
         const settore = data.settore || 'Da definire';

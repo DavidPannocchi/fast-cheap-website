@@ -1,0 +1,79 @@
+const NOTION_API_KEY = process.env.NOTION_API_KEY;
+const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
+
+const notionHeaders = {
+  Authorization: `Bearer ${NOTION_API_KEY}`,
+  'Content-Type': 'application/json',
+  'Notion-Version': '2022-06-28',
+};
+
+function getDisplayValue(property) {
+  if (!property) return '';
+
+  switch (property.type) {
+    case 'title':
+      return property.title?.map((item) => item.plain_text).join('') || '';
+    case 'rich_text':
+      return property.rich_text?.map((item) => item.plain_text).join('') || '';
+    case 'select':
+      return property.select?.name || '';
+    case 'number':
+      return property.number ?? '';
+    case 'url':
+      return property.url || '';
+    case 'date':
+      return property.date?.start || '';
+    default:
+      return '';
+  }
+}
+
+function findProperty(properties, aliases) {
+  if (!properties) return null;
+
+  const keys = Object.keys(properties);
+  const normalizedAliases = aliases.map((alias) => alias.toLowerCase().replace(/\s+/g, ''));
+
+  const match = keys.find((key) => normalizedAliases.includes(key.toLowerCase().replace(/\s+/g, '')));
+  return match ? properties[match] : null;
+}
+
+async function queryPageByOrderId(orderId) {
+  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) {
+    throw new Error('NOTION_API_KEY e NOTION_DATABASE_ID devono essere configurate.');
+  }
+
+  const queryPayloads = [
+    { filter: { property: 'Order ID', rich_text: { equals: orderId } } },
+    { filter: { property: 'Order ID', rich_text: { contains: orderId } } },
+    { filter: { property: 'Order ID', title: { equals: orderId } } },
+    { filter: { property: 'Order ID', title: { contains: orderId } } },
+  ];
+
+  for (const payload of queryPayloads) {
+    const response = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
+      method: 'POST',
+      headers: notionHeaders,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Errore durante la ricerca su Notion.');
+    }
+
+    const data = await response.json();
+    if (data.results?.length) {
+      return data.results[0];
+    }
+  }
+
+  return null;
+}
+
+module.exports = {
+  notionHeaders,
+  getDisplayValue,
+  findProperty,
+  queryPageByOrderId,
+};

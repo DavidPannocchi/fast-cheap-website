@@ -1,30 +1,6 @@
+const { queryPageByOrderId, getDisplayValue, findProperty } = require('./_notion-helpers');
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
-
-async function findOrderPage(orderId) {
-  const response = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${NOTION_API_KEY}`,
-      'Content-Type': 'application/json',
-      'Notion-Version': '2022-06-28',
-    },
-    body: JSON.stringify({
-      filter: {
-        property: 'Order ID',
-        rich_text: { equals: orderId },
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Errore nella ricerca dell’ordine.');
-  }
-
-  const data = await response.json();
-  return data.results?.[0] || null;
-}
 
 exports.handler = async (event) => {
   const orderId = event.queryStringParameters?.order_id || '';
@@ -39,7 +15,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const page = await findOrderPage(orderId);
+    const page = await queryPageByOrderId(orderId);
     if (!page) {
       return { statusCode: 404, body: JSON.stringify({ error: 'Ordine non trovato.' }) };
     }
@@ -50,13 +26,23 @@ exports.handler = async (event) => {
       },
     };
 
+    const revisionCounterProperty = findProperty(page.properties || {}, ['Revisioni usate', 'Revisions used', 'Contatore revisioni usate']);
+    if (revisionCounterProperty) {
+      const currentValue = Number(getDisplayValue(revisionCounterProperty) || 0);
+      properties.RevisioniUsate = {
+        number: currentValue + 1,
+      };
+    } else {
+      console.warn(`Property revision counter not found for order ${orderId}`);
+    }
+
     if (page.properties && Object.prototype.hasOwnProperty.call(page.properties, 'Note')) {
       properties.Note = {
         rich_text: [{ text: { content: note || 'Richiesta di revisione inviata dal cliente.' } }],
       };
     }
 
-    await fetch(`https://api.notion.com/v1/pages/${page.id}`, {
+    const patchResponse = await fetch(`https://api.notion.com/v1/pages/${page.id}`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${NOTION_API_KEY}`,
@@ -65,6 +51,11 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({ properties }),
     });
+
+    if (!patchResponse.ok) {
+      const errorData = await patchResponse.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Errore durante l\'aggiornamento su Notion.');
+    }
 
     return { statusCode: 200, body: JSON.stringify({ ok: true, message: 'Richiesta di revisione registrata.' }) };
   } catch (error) {

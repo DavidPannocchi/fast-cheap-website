@@ -37,18 +37,6 @@ const buildTallyUrl = (metadata) => {
   return `${TALLY_FORM_URL}?${queryParts.join('&')}`;
 };
 
-// Manual test rapido con metadata di esempio
-console.log(
-  'Tally URL test:',
-  buildTallyUrl({
-    orderId: 'cs_test_123',
-    settore: 'ristorazione',
-    stile: 'moderno',
-    blocchi: 'home,menu,contatti',
-    addons: 'seo,copywriting',
-  })
-);
-
 exports.handler = async (event) => {
   const sessionId = event.queryStringParameters.session_id;
 

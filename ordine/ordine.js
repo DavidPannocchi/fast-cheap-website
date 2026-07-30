@@ -24,6 +24,8 @@ const previewLink = document.getElementById('preview-link');
 const revisionCounter = document.getElementById('revision-counter');
 const approveButton = document.getElementById('approve-order');
 const revisionButton = document.getElementById('request-revision');
+const extraRevisionButton = document.getElementById('add-revision-upgrade');
+const upsellButtons = Array.from(document.querySelectorAll('[data-addon-id]'));
 
 function setActiveBlock(status) {
   stateBlocks.forEach((block) => block.classList.toggle('is-active', block.dataset.stato === status));
@@ -36,6 +38,7 @@ function setActiveStep(stepKey) {
 function renderOrder(data) {
   const status = data.stato || 'fallback';
   const meta = statusMeta[status] || { title: 'Abbiamo ricevuto il tuo ordine', step: 'ricevuto' };
+  let remaining = 0;
 
   statusTitle.textContent = meta.title;
   customerName.textContent = data.cliente_nome || 'Cliente in attesa';
@@ -53,13 +56,25 @@ function renderOrder(data) {
   if (status === 'pronto_anteprima') {
     const revisionsIncluded = Number(data.revisioni_incluse || 0);
     const revisionsUsed = Number(data.revisioni_usate || 0);
-    const remaining = Math.max(revisionsIncluded - revisionsUsed, 0);
+    remaining = Math.max(revisionsIncluded - revisionsUsed, 0);
     revisionCounter.textContent = remaining > 0
       ? `Hai ancora ${remaining} revisioni incluse`
       : 'Hai già usato tutte le revisioni incluse';
     document.getElementById('preview-actions').style.display = 'flex';
+    if (extraRevisionButton) {
+      extraRevisionButton.style.display = remaining > 0 ? 'none' : 'inline-flex';
+      revisionButton.disabled = remaining <= 0;
+      revisionButton.classList.toggle('is-disabled', remaining <= 0);
+    }
   } else {
     document.getElementById('preview-actions').style.display = 'none';
+  }
+
+  if (status === 'consegnato' || status === 'chiuso_supporto') {
+    const postDeliveryUpsell = document.getElementById('post-delivery-upsell');
+    if (postDeliveryUpsell) {
+      postDeliveryUpsell.style.display = 'block';
+    }
   }
 
   setActiveBlock(status);
@@ -137,7 +152,36 @@ async function requestRevision() {
   }
 }
 
+async function createAddonCheckout(addonId) {
+  if (!orderId) return;
+  try {
+    const response = await fetch('/.netlify/functions/create-addon-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId, addon_id: addonId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Impossibile avviare il checkout.');
+    }
+
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  } catch (error) {
+    alert(error.message || 'Si è verificato un errore.');
+  }
+}
+
 approveButton.addEventListener('click', approveCurrentOrder);
 revisionButton.addEventListener('click', requestRevision);
+if (extraRevisionButton) {
+  extraRevisionButton.addEventListener('click', () => createAddonCheckout('revisione_extra'));
+}
+upsellButtons.forEach((button) => {
+  button.addEventListener('click', () => createAddonCheckout(button.dataset.addonId));
+});
 
 loadOrder();

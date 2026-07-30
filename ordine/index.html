@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Il tuo ordine | Fast & Cheap</title>
+    <title>Il tuo ordine | pronto.site</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -115,6 +115,7 @@
             <a id="preview-link" class="primary-btn" href="#">Apri l’anteprima</a>
             <button id="approve-order" class="primary-btn" type="button">Approva</button>
             <button id="request-revision" class="secondary-btn" type="button">Richiedi revisione</button>
+            <button id="add-revision-upgrade" class="secondary-btn" type="button" style="display:none">Aggiungi una revisione (€79)</button>
           </div>
           <p id="revision-counter" class="muted-copy">Hai ancora N revisioni incluse</p>
         </div>
@@ -137,6 +138,11 @@
         <div class="stato-blocco" data-stato="chiuso_supporto">
           <h3>Il tuo sito è attivo</h3>
           <p>Il progetto è in funzione e puoi continuare a lavorare con noi per eventuali piccoli aggiornamenti.</p>
+          <div id="post-delivery-upsell" class="action-box" style="display:none; margin-top:16px">
+            <button class="secondary-btn" type="button" data-addon-id="assistenza_estesa">Assistenza estesa 60gg</button>
+            <button class="secondary-btn" type="button" data-addon-id="contenuti_extra">Contenuti extra</button>
+            <button class="secondary-btn" type="button" data-addon-id="multilingua">Multilingua</button>
+          </div>
         </div>
 
         <div class="stato-blocco" data-stato="fallback">
