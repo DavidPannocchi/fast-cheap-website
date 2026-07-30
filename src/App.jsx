@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
 import contentHtml from './content.html?raw';
 import BriefPage from './BriefPage.jsx';
+import DominioPage from './DominioPage.jsx';
 import './styles.css';
 
 export default function App() {
-  const isBriefPage = window.location.pathname === '/brief';
+  const pathname = window.location.pathname;
+  const isBriefPage = pathname === '/brief';
+  const isDominioPage = pathname === '/dominio';
 
   useEffect(() => {
-    if (isBriefPage) return;
+    if (isBriefPage || isDominioPage) return;
 
     let active = true;
     let cleanup;
@@ -22,10 +25,14 @@ export default function App() {
       active = false;
       cleanup?.();
     };
-  }, [isBriefPage]);
+  }, [isBriefPage, isDominioPage]);
 
   if (isBriefPage) {
     return <BriefPage />;
+  }
+
+  if (isDominioPage) {
+    return <DominioPage />;
   }
 
   return <div dangerouslySetInnerHTML={{ __html: contentHtml }} />;

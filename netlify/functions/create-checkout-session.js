@@ -8,20 +8,21 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
 
+    const priceIds = Array.isArray(body.priceIds) && body.priceIds.length ? body.priceIds : (body.priceId ? [body.priceId] : []);
+
+    const line_items = priceIds.map((pid) => ({ price: pid, quantity: 1 }));
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [
-        {
-          price: body.priceId, // il Price ID del pacchetto Base
-          quantity: 1,
-        },
-      ],
+      line_items,
       metadata: {
         settore: body.settore || '',
         blocchi: body.blocchi || '',
         stile: body.stile || '',
+        tier: body.tier || '',
+        addons: JSON.stringify(body.addons || []),
       },
-      success_url: `${process.env.URL}/brief?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.URL}/dominio?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.URL}/`,
     });
 

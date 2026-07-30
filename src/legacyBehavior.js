@@ -35,6 +35,13 @@ const PRO_PRICE=349;
 const BASE_SECTION_LIMIT=4;
 const ST={base:BASE_PRICE,plan:'base',addons:0,flatAddonTotal:0,revisionRounds:0,settore:null,stile:null,blocks:[],addonNames:[],flatAddonNames:[]};
 const REVISION_PRICE=59;
+// Stripe price IDs
+const BASE_PRICE_ID = 'price_1TwmZR6AHTHA0VN1neD75jFV';
+const PRO_PRICE_ID = 'price_1TxTn46AHTHA0VN127SFfNMi';
+const DOMAIN_ADDON_PRICE_ID = 'price_1TxT4A6AHTHA0VN1WQgf0vNy';
+const ADDON_PRICE_IDS = {
+  'Dominio pulito': DOMAIN_ADDON_PRICE_ID,
+};
 const MAX_REVISION_ROUNDS=3;
 const FIXED_SECTION_MSG='Questa sezione ha una posizione fissa';
 
@@ -645,14 +652,23 @@ function confirmCheckout(){
 }
 async function vaiAlPagamento() {
   try {
+    // build priceIds: base package + any addons that have a Stripe Price ID
+    const basePriceId = ST.plan === 'pro' ? PRO_PRICE_ID : BASE_PRICE_ID;
+    const priceIds = [basePriceId];
+    ST.flatAddonNames.forEach((name) => {
+      if (ADDON_PRICE_IDS[name]) priceIds.push(ADDON_PRICE_IDS[name]);
+    });
+
     const res = await fetch('/.netlify/functions/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        priceId: 'price_1TwmZR6AHTHA0VN1neD75jFV',
+        priceIds,
         settore: ST.settore,
         blocchi: ST.blocks.join(','),
         stile: ST.stile,
+        tier: ST.plan,
+        addons: ST.flatAddonNames,
       }),
     });
 
@@ -666,11 +682,6 @@ async function vaiAlPagamento() {
     console.error(error);
     showToast(error.message || 'Errore durante il pagamento.');
   }
-}
-async function checkoutFinalize(){
-  const total=ST.base+ST.addons;
-  showToast(`Avvio checkout per €${total}…`);
-  await vaiAlPagamento();
 }
 
 // ── FAQ ──

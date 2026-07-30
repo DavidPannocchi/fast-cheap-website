@@ -6,6 +6,8 @@ export default function BriefPage() {
   const [summary, setSummary] = useState('Sto caricando il riepilogo del tuo ordine…');
   const [tallyUrl, setTallyUrl] = useState('');
   const [error, setError] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [showDomain, setShowDomain] = useState(false);
 
   const isMissingSession = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -46,6 +48,12 @@ export default function BriefPage() {
 
         const url = `https://tally.so/r/${TALLY_FORM_ID}?${tallyParams.toString()}`;
         setTallyUrl(url);
+
+        const dominio = params.get('dominio') || sessionStorage.getItem('dominio_scelto') || '';
+        if (dominio) {
+          setSelectedDomain(dominio);
+          sessionStorage.setItem('dominio_scelto', dominio);
+        }
       } catch (err) {
         setError(err.message || 'Si è verificato un errore durante il caricamento del riepilogo.');
       }
@@ -53,6 +61,12 @@ export default function BriefPage() {
 
     caricaRiepilogo();
   }, []);
+
+  useEffect(() => {
+    if (!selectedDomain) return;
+    const timer = window.setTimeout(() => setShowDomain(true), 80);
+    return () => window.clearTimeout(timer);
+  }, [selectedDomain]);
 
   return (
     <div className="brief-page">
@@ -75,6 +89,12 @@ export default function BriefPage() {
             ) : (
               <>
                 <p className="brief-summary-line">{summary}</p>
+                {selectedDomain ? (
+                  <div className={`brief-domain-badge${showDomain ? ' show' : ''}`}>
+                    <span>Dominio confermato:</span>
+                    <strong>{selectedDomain}</strong>
+                  </div>
+                ) : null}
                 {isMissingSession && !error ? (
                   <p className="brief-hint">Aggiungi <strong>?session_id=...</strong> nell’URL per vedere il riepilogo.</p>
                 ) : null}
