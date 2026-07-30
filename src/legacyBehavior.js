@@ -632,7 +632,7 @@ function goCheckout(){
     openModal();
     return;
   }
-  checkoutFinalize();
+  void vaiAlPagamento();
 }
 function openModal(){
   const modal=document.getElementById('confirmModal');
@@ -648,7 +648,7 @@ function closeModalAndOpenAddons(){
 }
 function confirmCheckout(){
   closeModal();
-  void checkoutFinalize();
+  void vaiAlPagamento();
 }
 async function vaiAlPagamento() {
   try {
