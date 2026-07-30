@@ -30,18 +30,51 @@ function showToast(msg,icon='🔒',variant='default'){
 }
 
 // ── STATE ──
-const BASE_PRICE=149;
-const PRO_PRICE=349;
+const BASE_PRICE=199;
+const PRO_PRICE=399;
 const BASE_SECTION_LIMIT=4;
 const ST={base:BASE_PRICE,plan:'base',addons:0,flatAddonTotal:0,revisionRounds:0,settore:null,stile:null,blocks:[],addonNames:[],flatAddonNames:[]};
-const REVISION_PRICE=59;
+
+// ── ADDON CATALOG ──
+// attivo:false nasconde l'addon dal configuratore senza rimuoverlo dal catalogo.
+const ADDON_CATALOG = [
+  { id: 'seo_base', nome: 'SEO Base', prezzo: 49, attivo: true, extraFlag: null, sub: 'Meta tag, sitemap, Google' },
+  { id: 'dominio_email', nome: 'Dominio personalizzato + email professionale', prezzo: 39, attivo: true, extraFlag: null, sub: 'Registrazione dominio, DNS e casella email' },
+  { id: 'logo', nome: 'Logo Design', prezzo: 59, attivo: true, extraFlag: 'extra_logo', sub: 'Logo su misura per il tuo brand' },
+  { id: 'contenuti', nome: 'Contenuti professionali (testi e immagini)', prezzo: 99, attivo: true, extraFlag: 'extra_contenuti', sub: 'Testi e immagini preparati da noi' },
+  { id: 'menu_qr', nome: 'Menu digitale + QR', prezzo: 39, attivo: true, extraFlag: 'extra_qr', sub: 'Menu online con QR code da stampare' },
+  { id: 'multilingua', nome: 'Sito multilingua ita/eng', prezzo: 69, attivo: true, extraFlag: 'extra_multilingua', sub: 'Versione italiana e inglese' },
+  { id: 'sezione_extra', nome: 'Sezione aggiuntiva', prezzo: 39, attivo: true, extraFlag: null, sub: 'Una sezione in più sul tuo sito' },
+  { id: 'consegna_24h', nome: 'Consegna in 24 ore', prezzo: 69, attivo: true, extraFlag: null, sub: 'Il tuo sito online in un giorno' },
+  { id: 'revisione_extra', nome: 'Revisione extra', prezzo: 49, attivo: true, extraFlag: null, sub: 'Fino a 3 round aggiuntivi' },
+  { id: 'assistenza_annuale', nome: 'Assistenza annuale', prezzo: 119, attivo: true, extraFlag: null, sub: 'Aggiornamenti e supporto per 12 mesi' },
+];
+// "revisione_post" (€79) non entra qui: è un addon post-vendita, gestito solo in
+// ordine/ordine.js, non nel configuratore iniziale — mantienilo separato.
+
+const REVISION_PRICE=ADDON_CATALOG.find(a=>a.id==='revisione_extra')?.prezzo ?? 49;
 // Stripe price IDs
-const BASE_PRICE_ID = 'price_1TwmZR6AHTHA0VN1neD75jFV';
-const PRO_PRICE_ID = 'price_1TxTn46AHTHA0VN127SFfNMi';
-const DOMAIN_ADDON_PRICE_ID = 'price_1TxT4A6AHTHA0VN1WQgf0vNy';
+const BASE_PRICE_ID = 'price_1TywRc6AHTHA0VN10uD9aQOY'; // Pacchetto Vetrina €199
+const PRO_PRICE_ID = 'price_1TxTn46AHTHA0VN127SFfNMi';  // Pacchetto Pro €399
+// TODO: sostituire ogni placeholder price_TODO_* con il Price ID one-time reale su Stripe.
+// TODO: 'Dominio personalizzato + email professionale' e 'Assistenza annuale' su Stripe
+//       esistono oggi solo come Price ricorrenti (€39/anno e €119/anno): va creato un
+//       Price one-time equivalente sullo stesso Product prima di poterli vendere.
+//       Vecchio price ricorrente dominio: price_1TxT4A6AHTHA0VN1WQgf0vNy
 const ADDON_PRICE_IDS = {
-  'Dominio pulito': DOMAIN_ADDON_PRICE_ID,
+  'SEO Base': 'price_1TywS46AHTHA0VN16mVckko4',
+  'Dominio personalizzato + email professionale': 'price_1TxT4A6AHTHA0VN1WQgf0vNy',
+  'Logo Design': 'price_1TywTi6AHTHA0VN1lAhvmQun',
+  'Contenuti professionali (testi e immagini)': 'price_1TywU56AHTHA0VN19qZXGuSm',
+  'Menu digitale + QR': 'price_1TywUF6AHTHA0VN1YXmLYrou',
+  'Sito multilingua ita/eng': 'price_1TywUV6AHTHA0VN1mCRRrqnY',
+  'Sezione aggiuntiva': 'price_1TywUm6AHTHA0VN1pplQMMcQ',
+  'Consegna in 24 ore': 'price_1TywV76AHTHA0VN1zxY9PvDY',
+  'Revisione extra': 'price_1TywVK6AHTHA0VN1VjV8ZjjJ',
+  'Assistenza annuale': 'price_1TywVX6AHTHA0VN1NJIbMAtF',
 };
+// Finché il price ID è un placeholder non va inviato a Stripe: romperebbe il checkout.
+const isPlaceholderPriceId=(id)=>!id||id.startsWith('price_TODO');
 const MAX_REVISION_ROUNDS=3;
 const FIXED_SECTION_MSG='Questa sezione ha una posizione fissa';
 
@@ -79,11 +112,11 @@ function getDeliveryDate(){
 
 // ── SECTOR ──
 const SECTOR_CONFIG={
-  'Ristorazione':{allowed:['Menu','Copertina','Chi siamo','I nostri servizi','Contattaci','Dove siamo','Domande frequenti','I nostri prezzi','Cosa dicono di noi'],required:['Menu','Copertina']},
-  'Professionista':{allowed:['Copertina','Chi siamo','I nostri servizi','Lavori realizzati','Cosa dicono di noi','Contattaci','Domande frequenti','I nostri prezzi','Clienti'],required:['Copertina','Clienti']},
-  'Negozio online':{allowed:['Copertina','I nostri servizi','Lavori realizzati','Contattaci','I nostri prezzi','News e articoli','Domande frequenti','Cosa dicono di noi'],required:['Copertina']},
-  'Artista / Creativo':{allowed:['Copertina','Lavori realizzati','News e articoli','Contattaci','Cosa dicono di noi','Domande frequenti'],required:['Copertina']},
-  'Beauty & Benessere':{allowed:['Copertina','I nostri servizi','Cosa dicono di noi','Contattaci','Dove siamo','I nostri prezzi','Domande frequenti'],required:['Copertina']},
+  'Ristorazione':{allowed:['Chi siamo','Listino / Menu','Galleria','Recensioni','Orari e mappa','FAQ','Contattaci'],required:['Menu','Copertina']},
+  'Professionista':{allowed:['Chi siamo','I nostri servizi','Listino / Menu','Galleria','Recensioni','FAQ','Contattaci'],required:['Menu','Copertina']},
+  'Negozio online':{allowed:['Chi siamo','I nostri servizi','Listino / Menu','Galleria','Recensioni','FAQ','Contattaci'],required:['Menu','Copertina']},
+  'Artista / Creativo':{allowed:['Chi siamo','I nostri servizi','Galleria','Recensioni','FAQ','Contattaci'],required:['Menu','Copertina']},
+  'Beauty & Benessere':{allowed:['Chi siamo','I nostri servizi','Listino / Menu','Galleria','Recensioni','Orari e mappa','FAQ','Contattaci'],required:['Menu','Copertina']},
   'Altro…':{allowed:[]}
 };
 
@@ -235,14 +268,12 @@ const BLOCKS={
   'Copertina':{locked:true,inner:`<div class="bp-hero"><div class="bph-txt"><div class="bph-h"></div><div class="bph-s"></div><div class="bph-b"></div></div><div class="bph-img"></div></div>`},
   'Chi siamo':{inner:`<div class="bp-about"><div class="bpa-img"></div><div class="bpa-txt"><div class="bpa-h"></div><div class="bpa-l"></div><div class="bpa-l2"></div></div></div>`},
   'I nostri servizi':{inner:`<div class="bp-services"><div class="bps-i"><div class="bps-ico" style="background:var(--yellow);"></div><div class="bps-t"></div></div><div class="bps-i"><div class="bps-ico" style="background:var(--lilac);"></div><div class="bps-t"></div></div><div class="bps-i"><div class="bps-ico" style="background:var(--mint);"></div><div class="bps-t"></div></div></div>`},
-  'Lavori realizzati':{inner:`<div class="bp-portfolio"><div class="bpp-i"></div><div class="bpp-i"></div><div class="bpp-i" style="background:linear-gradient(135deg,var(--mint),rgba(194,240,224,.4));"></div></div>`},
-  'Clienti':{inner:`<div class="bp-generic"><div class="bpg-wrap"><div class="bpg-b" style="width:90%;height:9px;background:var(--night);opacity:.08;"></div><div class="bpg-b" style="width:70%"></div></div></div>`},
-  'Cosa dicono di noi':{inner:`<div class="bp-testimonials"><div class="bpt-c"><div class="bpt-stars">★★★★★</div><div class="bpt-t"></div><div class="bpt-n"></div></div></div>`},
-  'News e articoli':{inner:`<div class="bp-blog"><div class="bpbl-i"><div class="bpbl-img c1"></div><div class="bpbl-t"></div></div><div class="bpbl-i"><div class="bpbl-img c2"></div><div class="bpbl-t"></div></div></div>`},
+  'Listino / Menu':{inner:`<div class="bp-pricing"><div class="bppr-i"><div class="bppr-p"></div><div class="bppr-l" style="background:var(--border);"></div></div><div class="bppr-i"><div class="bppr-p"></div><div class="bppr-l"></div></div><div class="bppr-i"><div class="bppr-p"></div><div class="bppr-l" style="background:var(--border);"></div></div></div>`},
+  'Galleria':{inner:`<div class="bp-portfolio"><div class="bpp-i"></div><div class="bpp-i"></div><div class="bpp-i" style="background:linear-gradient(135deg,var(--mint),rgba(194,240,224,.4));"></div></div>`},
+  'Recensioni':{inner:`<div class="bp-testimonials"><div class="bpt-c"><div class="bpt-stars">★★★★★</div><div class="bpt-t"></div><div class="bpt-n"></div></div></div>`},
+  'Orari e mappa':{inner:`<div class="bp-map"><div class="bpm-bg"></div><div class="bpm-grid"></div><div class="bpm-pin">📍</div></div>`},
+  'FAQ':{inner:`<div class="bp-faq"><div class="bpf-row"><span class="bpf-ico">▼</span><div class="bpf-t"></div></div><div class="bpf-row"><span class="bpf-ico">+</span><div class="bpf-t"></div></div><div class="bpf-row"><span class="bpf-ico">+</span><div class="bpf-t"></div></div></div>`},
   'Contattaci':{inner:`<div class="bp-contact"><div class="bpc-form"><div class="bpc-in"></div><div class="bpc-in"></div><div class="bpc-btn"></div></div><div class="bpc-info"><div class="bpc-row"><div class="bpc-ico"></div><div class="bpc-ln"></div></div><div class="bpc-row"><div class="bpc-ico" style="background:var(--mint);"></div><div class="bpc-ln"></div></div></div></div>`},
-  'Dove siamo':{inner:`<div class="bp-map"><div class="bpm-bg"></div><div class="bpm-grid"></div><div class="bpm-pin">📍</div></div>`},
-  'Domande frequenti':{inner:`<div class="bp-faq"><div class="bpf-row"><span class="bpf-ico">▼</span><div class="bpf-t"></div></div><div class="bpf-row"><span class="bpf-ico">+</span><div class="bpf-t"></div></div><div class="bpf-row"><span class="bpf-ico">+</span><div class="bpf-t"></div></div></div>`},
-  'I nostri prezzi':{inner:`<div class="bp-pricing"><div class="bppr-i"><div class="bppr-p"></div><div class="bppr-l" style="background:var(--border);"></div></div><div class="bppr-i"><div class="bppr-p"></div><div class="bppr-l"></div></div><div class="bppr-i"><div class="bppr-p"></div><div class="bppr-l" style="background:var(--border);"></div></div></div>`},
 };
 
 const canvas=document.getElementById('canvas');
@@ -469,6 +500,44 @@ function onCbDragEnd(){
 }
 
 // ── ADDONS ──
+// escape per literal JS dentro l'attributo onclick (setAttribute non decodifica entità HTML)
+const escJs=(s)=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+// Genera le righe .addon-r dello step 4 da ADDON_CATALOG (solo quelle con attivo===true).
+function renderAddons(){
+  const box=document.getElementById('cfg-b4');
+  if(!box)return;
+  box.innerHTML='';
+  ADDON_CATALOG.filter(a=>a.attivo).forEach(a=>{
+    const row=document.createElement('div');
+    row.dataset.p=a.prezzo;
+    if(a.id==='revisione_extra'){
+      // caso speciale: riga con stepper invece del semplice toggle
+      row.className='addon-r addon-spinner';
+      row.id='revisionAddon';
+      row.setAttribute('onclick','selectRevisionAddon()');
+      row.innerHTML=`
+        <div class="addon-cb">✓</div>
+        <div class="addon-inf">
+          <div class="addon-nm">Revisioni extra</div>
+          <div class="addon-sb">${a.sub}</div>
+        </div>
+        <div class="stepper" aria-label="Round di revisioni extra">
+          <button type="button" class="stepper-btn" onclick="changeRevisionRounds(-1,event)" aria-label="Diminuisci revisioni extra">−</button>
+          <span class="stepper-val" id="revisionRounds">0</span>
+          <button type="button" class="stepper-btn" onclick="changeRevisionRounds(1,event)" aria-label="Aumenta revisioni extra">+</button>
+        </div>
+        <div class="addon-pr" id="revisionPrice">+€${a.prezzo}</div>`;
+    } else {
+      row.className='addon-r';
+      if(a.id==='seo_base')row.id='seoAddon';
+      row.setAttribute('onclick',`toggleAddon(this,${a.prezzo},'${escJs(a.nome)}')`);
+      row.innerHTML=`<div class="addon-cb">✓</div><div class="addon-inf"><div class="addon-nm">${a.nome}</div><div class="addon-sb">${a.sub}</div></div><div class="addon-pr">+€${a.prezzo}</div>`;
+    }
+    box.appendChild(row);
+  });
+}
+
 function syncAddonsSummary(){
   const revisionTotal=ST.plan==='pro' ? 0 : ST.revisionRounds*REVISION_PRICE;
   ST.addons=ST.flatAddonTotal+revisionTotal;
@@ -656,7 +725,11 @@ async function vaiAlPagamento() {
     const basePriceId = ST.plan === 'pro' ? PRO_PRICE_ID : BASE_PRICE_ID;
     const priceIds = [basePriceId];
     ST.flatAddonNames.forEach((name) => {
-      if (ADDON_PRICE_IDS[name]) priceIds.push(ADDON_PRICE_IDS[name]);
+      const priceId = ADDON_PRICE_IDS[name];
+      // TODO: rimuovere il filtro sui placeholder quando tutti i price_TODO_* saranno
+      // sostituiti dai Price ID reali. Finché è attivo, l'addon viene tracciato nei
+      // metadata ma non addebitato su Stripe.
+      if (priceId && !isPlaceholderPriceId(priceId)) priceIds.push(priceId);
     });
 
     const res = await fetch('/.netlify/functions/create-checkout-session', {
@@ -713,6 +786,7 @@ const aiEl=document.getElementById('ai-check');if(aiEl)aio.observe(aiEl);
 cleanupFns.push(() => aio.disconnect());
 
 // ── INIT ──
+renderAddons();
 initCanvas();
 
   window.pickStyle = pickStyle;

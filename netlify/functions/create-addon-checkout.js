@@ -1,5 +1,12 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+const ADDON_ID_TO_PRICE = {
+  revisione_post: 'price_1Tx5xV6AHTHA0VN1gXnSwxH4',      // Revisione dopo la consegna €79
+  assistenza_annuale: 'price_1TywDg6AHTHA0VN1XuMyEo6v',  // Assistenza annuale €119
+  contenuti: 'price_1Tx5lZ6AHTHA0VN12lMcwuvj',            // Contenuti professionali €99
+  multilingua: 'price_1Tx5XQ6AHTHA0VN13UBKdwxJ',          // Sito multilingua €69
+};
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -17,13 +24,12 @@ exports.handler = async (event) => {
       };
     }
 
-    // TODO: sostituire con i reali Price ID Stripe degli addon.
-    const priceId = process.env.STRIPE_ADDON_PRICE_ID || '';
+    const priceId = ADDON_ID_TO_PRICE[addonId];
 
     if (!priceId) {
       return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Price ID add-on non configurato.' }),
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Addon non riconosciuto.' }),
       };
     }
 

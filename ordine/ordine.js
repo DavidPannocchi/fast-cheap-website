@@ -178,7 +178,9 @@ async function createAddonCheckout(addonId) {
 approveButton.addEventListener('click', approveCurrentOrder);
 revisionButton.addEventListener('click', requestRevision);
 if (extraRevisionButton) {
-  extraRevisionButton.addEventListener('click', () => createAddonCheckout('revisione_extra'));
+  // "revisione_post" (€79) è l'addon post-consegna: prodotto Stripe diverso da
+  // "revisione_extra" (€49) del configuratore iniziale — gli id non vanno confusi.
+  extraRevisionButton.addEventListener('click', () => createAddonCheckout('revisione_post'));
 }
 upsellButtons.forEach((button) => {
   button.addEventListener('click', () => createAddonCheckout(button.dataset.addonId));

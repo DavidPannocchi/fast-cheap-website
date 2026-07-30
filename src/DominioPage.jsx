@@ -69,7 +69,7 @@ export default function DominioPage() {
       .then((data) => {
         const tier = (data.tier || '').toLowerCase();
         const addons = Array.isArray(data.addons) ? data.addons : [];
-        const hasAddon = addons.includes('Dominio pulito') || addons.includes('dominio pulito');
+        const hasAddon = addons.some((a) => String(a).toLowerCase() === 'dominio personalizzato + email professionale');
         const hasTier = tier === 'pro' || tier === 'business';
         if (!hasTier && !hasAddon) {
           window.location.href = `/brief?session_id=${encodeURIComponent(sid)}`;

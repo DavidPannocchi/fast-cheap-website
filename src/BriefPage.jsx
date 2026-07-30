@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const TALLY_FORM_ID = 'QKaQyY';
-
 export default function BriefPage() {
   const [summary, setSummary] = useState('Sto caricando il riepilogo del tuo ordine…');
   const [tallyUrl, setTallyUrl] = useState('');
@@ -45,14 +43,10 @@ export default function BriefPage() {
 
         setSummary(`Hai scelto: ${packageLabel}, settore ${settore}, blocchi ${blocks || '—'}, stile ${style}.`);
 
-        const tallyParams = new URLSearchParams();
-        tallyParams.set('order_id', data.orderId || sessionId);
-        if (data.email) {
-          tallyParams.set('email', data.email);
+        if (!data.tallyUrl) {
+          throw new Error('URL del brief non disponibile.');
         }
-
-        const url = `https://tally.so/r/${TALLY_FORM_ID}?${tallyParams.toString()}`;
-        setTallyUrl(url);
+        setTallyUrl(data.tallyUrl);
 
         const dominio = params.get('dominio') || sessionStorage.getItem('dominio_scelto') || '';
         if (dominio) {
