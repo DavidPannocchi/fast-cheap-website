@@ -8,9 +8,19 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
 
-    const priceIds = Array.isArray(body.priceIds) && body.priceIds.length ? body.priceIds : (body.priceId ? [body.priceId] : []);
+    let line_items = [];
 
-    const line_items = priceIds.map((pid) => ({ price: pid, quantity: 1 }));
+    if (Array.isArray(body.items) && body.items.length) {
+      // nuovo formato: [{ priceId, quantity }]
+      line_items = body.items.map((item) => ({
+        price: item.priceId,
+        quantity: item.quantity || 1,
+      }));
+    } else {
+      // vecchio formato: compatibilità con priceIds piatto
+      const priceIds = Array.isArray(body.priceIds) && body.priceIds.length ? body.priceIds : (body.priceId ? [body.priceId] : []);
+      line_items = priceIds.map((pid) => ({ price: pid, quantity: 1 }));
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -21,6 +31,7 @@ exports.handler = async (event) => {
         stile: body.stile || '',
         tier: body.tier || '',
         addons: JSON.stringify(body.addons || []),
+        revisioni_extra: String(body.revisioni_extra || 0),
       },
       success_url: `${process.env.URL}/dominio?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.URL}/`,

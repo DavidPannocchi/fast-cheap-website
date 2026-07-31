@@ -719,32 +719,36 @@ function confirmCheckout(){
   closeModal();
   void vaiAlPagamento();
 }
+
+const REVISION_PRICE_ID = 'price_1TywVK6AHTHA0VN1VjV8ZjjJ'; // il nuovo Price ID da Stripe
+
 async function vaiAlPagamento() {
   try {
-    // build priceIds: base package + any addons that have a Stripe Price ID
     const basePriceId = ST.plan === 'pro' ? PRO_PRICE_ID : BASE_PRICE_ID;
-    const priceIds = [basePriceId];
+    const items = [{ priceId: basePriceId, quantity: 1 }];
+
     ST.flatAddonNames.forEach((name) => {
-      const priceId = ADDON_PRICE_IDS[name];
-      // TODO: rimuovere il filtro sui placeholder quando tutti i price_TODO_* saranno
-      // sostituiti dai Price ID reali. Finché è attivo, l'addon viene tracciato nei
-      // metadata ma non addebitato su Stripe.
-      if (priceId && !isPlaceholderPriceId(priceId)) priceIds.push(priceId);
+      if (ADDON_PRICE_IDS[name]) items.push({ priceId: ADDON_PRICE_IDS[name], quantity: 1 });
     });
+
+    if (ST.revisionRounds > 0) {
+      items.push({ priceId: REVISION_PRICE_ID, quantity: ST.revisionRounds });
+    }
 
     const res = await fetch('/.netlify/functions/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        priceIds,
+        items,
         settore: ST.settore,
         blocchi: ST.blocks.join(','),
         stile: ST.stile,
         tier: ST.plan,
         addons: ST.flatAddonNames,
+        revisioni_extra: ST.revisionRounds,
       }),
     });
-
+    // ... resto invariato
     const data = await res.json();
     if (!res.ok || !data?.url) {
       throw new Error(data?.error || 'Impossibile avviare il pagamento.');
