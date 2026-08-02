@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "dotenv": "^17.4.2",
     "react": "latest",
     "react-dom": "latest",
     "stripe": "^22.3.2",

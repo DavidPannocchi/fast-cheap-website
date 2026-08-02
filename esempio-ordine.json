@@ -1,0 +1,21 @@
+{
+  "orderId": "cs_test_a1FeSYF98gXKLoMWm3i8KwtOXrORyzMYpp9YnRRQFrnWX8sXzkuN1B7a63",
+  "settore": "ristorante",
+  "nomeAttivita": "Trattoria da Mario",
+  "pacchetto": "Pro",
+  "blocchi": "Copertina,Chi siamo,Servizi,Contatti",
+  "presetRichiesto": "caldo",
+  "contatti": {
+    "telefono": "0801234567",
+    "email": "info@trattoriamario.it",
+    "indirizzo": "Via Roma 1, Napoli"
+  },
+  "tallyFields": [
+    { "label": "Slogan", "type": "TEXT", "value": "" },
+    { "label": "Non saprei", "type": "CHECKBOXES", "value": ["opt_1"], "options": [{"id":"opt_1","text":"Non saprei, pensaci tu"}] },
+    { "label": "Call to action", "type": "DROPDOWN", "value": "opt_cta2", "options": [{"id":"opt_cta1","text":"Chiamaci ora"},{"id":"opt_cta2","text":"Prenota un tavolo"}] },
+    { "label": "Attività in breve", "type": "TEXT", "value": "Trattoria di famiglia dal 1985, cucina tradizionale napoletana" },
+    { "label": "Servizi", "type": "TEXT", "value": "Pranzo, cena, catering per eventi" }
+  ],
+  "cosaEvitare": "Niente foto di piatti generici da stock"
+}
