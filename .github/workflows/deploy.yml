@@ -1,0 +1,35 @@
+name: Deploy to Netlify (Zero Credits)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      - name: Configura Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Compila il sito con Vite
+        run: npm run build
+
+      - name: Invia a Netlify senza consumare crediti
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          functions-dir: './netlify/functions'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
