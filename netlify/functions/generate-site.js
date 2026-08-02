@@ -28,12 +28,14 @@
 // vedi versione precedente di questo file) richiede solo di cambiare questa
 // sezione — il prompt builder resta identico.
 
-const { buildSystemPrompt, buildUserMessage } = require('./_prompt-builder');
+const { buildSystemPrompt, buildUserMessage, normalizeBlocchi } = require('./_prompt-builder');
 
 const MODEL = 'gemini-2.5-flash';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 exports.handler = async (event) => {
+  console.log('generate-site: invocazione ricevuta, metodo', event.httpMethod);
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Metodo non consentito' }) };
   }
@@ -64,7 +66,7 @@ exports.handler = async (event) => {
     // e confronta col numero di blocchi attesi (escludendo Copertina/nav che non sono <section>).
     const indexFile = parsed.files.find((f) => f.path === 'index.html');
     const sectionCount = indexFile ? (indexFile.content.match(/<section/g) || []).length : 0;
-    const expectedSections = (order.blocchi || []).filter(
+    const expectedSections = normalizeBlocchi(order.blocchi).filter(
       (b) => b !== 'Copertina' && b !== 'Menu'
     ).length;
     const sectionMismatch = sectionCount !== expectedSections;
@@ -107,9 +109,13 @@ exports.handler = async (event) => {
   }
 };
 
-// Chiama Gemini con retry esponenziale sui 429 — indispensabile sul free tier,
-// dove i rate limit sono bassi e un 429 occasionale è normale, non un'eccezione.
-async function callGeminiWithRetry(systemInstruction, userPrompt, maxRetries = 4) {
+// Chiama Gemini con retry esponenziale sui 429 — utile sul free tier, dove i rate
+// limit sono bassi. Tenuto DELIBERATAMENTE breve (2 tentativi, backoff max 4s):
+// le Netlify Functions sincrone hanno un tempo massimo di esecuzione, e un retry
+// troppo lungo qui rischia di far scadere la function con un timeout silenzioso
+// (nessun log, errore generico) invece di un errore gestito e visibile. Meglio
+// fallire in fretta e lasciare che sia Make a ritentare la chiamata.
+async function callGeminiWithRetry(systemInstruction, userPrompt, maxRetries = 2) {
   const url = `${GEMINI_API_URL}?key=${process.env.GEMINI_API_KEY}`;
 
   const body = JSON.stringify({
@@ -139,7 +145,7 @@ async function callGeminiWithRetry(systemInstruction, userPrompt, maxRetries = 4
     }
 
     if (res.status === 429 && attempt < maxRetries - 1) {
-      const backoffMs = Math.min(30000, 1000 * 2 ** attempt) + Math.random() * 1000;
+      const backoffMs = Math.min(4000, 800 * 2 ** attempt) + Math.random() * 500;
       await new Promise((r) => setTimeout(r, backoffMs));
       continue;
     }
