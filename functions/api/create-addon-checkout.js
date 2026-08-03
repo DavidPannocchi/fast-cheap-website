@@ -16,6 +16,8 @@ export async function onRequest(context) {
     httpClient: Stripe.createFetchHttpClient(),
   });
 
+  const siteUrl = new URL(context.request.url).origin;
+
   try {
     const body = await context.request.json().catch(() => ({}));
     const orderId = body.order_id || '';
@@ -44,8 +46,8 @@ export async function onRequest(context) {
         order_id: orderId,
         addon_id: addonId,
       },
-      success_url: `${process.env.URL || 'http://localhost:8888'}/ordine?order_id=${encodeURIComponent(orderId)}`,
-      cancel_url: `${process.env.URL || 'http://localhost:8888'}/ordine?order_id=${encodeURIComponent(orderId)}`,
+      success_url: `${siteUrl}/ordine?order_id=${encodeURIComponent(orderId)}`,
+      cancel_url: `${siteUrl}/ordine?order_id=${encodeURIComponent(orderId)}`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

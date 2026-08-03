@@ -9,6 +9,8 @@ export async function onRequest(context) {
     httpClient: Stripe.createFetchHttpClient(),
   });
 
+  const siteUrl = new URL(context.request.url).origin;
+
   try {
     const body = await context.request.json();
 
@@ -37,8 +39,8 @@ export async function onRequest(context) {
         addons: JSON.stringify(body.addons || []),
         revisioni_extra: String(body.revisioni_extra || 0),
       },
-      success_url: `${process.env.URL}/dominio?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.URL}/`,
+      success_url: `${siteUrl}/dominio?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
