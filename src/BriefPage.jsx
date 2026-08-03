@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 export default function BriefPage() {
-  const [summary, setSummary] = useState('Sto caricando il riepilogo del tuo ordine…');
+  const [orderData, setOrderData] = useState(null);
   const [tallyUrl, setTallyUrl] = useState('');
   const [error, setError] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
@@ -19,7 +19,6 @@ export default function BriefPage() {
 
       if (!sessionId) {
         setError('Nessun ordine trovato. Torna al checkout e completa il pagamento per continuare.');
-        setSummary('');
         return;
       }
 
@@ -36,12 +35,13 @@ export default function BriefPage() {
           pro: 'Pro',
           'su-misura': 'Su Misura',
         };
-        const packageLabel = packageLabels[(data.tier || '').toLowerCase()] || 'Il tuo pacchetto';
-        const blocks = (data.blocchi || '').split(',').filter(Boolean).join(' • ');
-        const style = data.stile || 'Da definire';
-        const settore = data.settore || 'Da definire';
 
-        setSummary(`Hai scelto: ${packageLabel}, settore ${settore}, blocchi ${blocks || '—'}, stile ${style}.`);
+        setOrderData({
+          packageLabel: packageLabels[(data.tier || '').toLowerCase()] || 'Il tuo pacchetto',
+          settore: data.settore || 'Da definire',
+          stile: data.stile || 'Da definire',
+          blocchi: (data.blocchi || '').split(',').map((b) => b.trim()).filter(Boolean),
+        });
 
         if (!data.tallyUrl) {
           throw new Error('URL del brief non disponibile.');
@@ -85,20 +85,47 @@ export default function BriefPage() {
           <div className="brief-summary-box" id="riepilogo">
             {error ? (
               <p className="brief-error">{error}</p>
-            ) : (
+            ) : orderData ? (
               <>
-                <p className="brief-summary-line">{summary}</p>
+                <div className="brief-summary-top">
+                  <span className="brief-package-pill">{orderData.packageLabel}</span>
+                  <div className="brief-summary-pairs">
+                    <div className="brief-summary-pair">
+                      <span className="brief-summary-label">Settore</span>
+                      <span className="brief-summary-value">{orderData.settore}</span>
+                    </div>
+                    <div className="brief-summary-pair">
+                      <span className="brief-summary-label">Stile</span>
+                      <span className="brief-summary-value">{orderData.stile}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {orderData.blocchi.length > 0 && (
+                  <div className="brief-blocks">
+                    <span className="brief-summary-label">Sezioni incluse</span>
+                    <div className="brief-blocks-list">
+                      {orderData.blocchi.map((blocco) => (
+                        <span key={blocco} className="brief-block-chip">{blocco}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {selectedDomain ? (
                   <div className={`brief-domain-badge${showDomain ? ' show' : ''}`}>
                     <span>Dominio confermato:</span>
                     <strong>{selectedDomain}</strong>
                   </div>
                 ) : null}
-                {isMissingSession && !error ? (
-                  <p className="brief-hint">Aggiungi <strong>?session_id=...</strong> nell’URL per vedere il riepilogo.</p>
-                ) : null}
               </>
+            ) : (
+              <p className="brief-summary-loading">Sto caricando il riepilogo del tuo ordine…</p>
             )}
+
+            {isMissingSession && !error ? (
+              <p className="brief-hint">Aggiungi <strong>?session_id=...</strong> nell’URL per vedere il riepilogo.</p>
+            ) : null}
           </div>
         </section>
 
