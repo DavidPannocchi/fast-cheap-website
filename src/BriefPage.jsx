@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
+const packageLabels = {
+  base: 'Vetrina',
+  pro: 'Pro',
+  'su-misura': 'Su Misura',
+};
+
 export default function BriefPage() {
   const [orderData, setOrderData] = useState(null);
   const [tallyUrl, setTallyUrl] = useState('');
@@ -30,21 +36,16 @@ export default function BriefPage() {
           throw new Error(data?.error || 'Impossibile recuperare il riepilogo del pagamento.');
         }
 
-        const packageLabels = {
-          vetrina: 'Vetrina',
-          pro: 'Pro',
-          'su-misura': 'Su Misura',
-        };
-
         setOrderData({
           packageLabel: packageLabels[(data.tier || '').toLowerCase()] || 'Il tuo pacchetto',
           settore: data.settore || 'Da definire',
           stile: data.stile || 'Da definire',
           blocchi: (data.blocchi || '').split(',').map((b) => b.trim()).filter(Boolean),
+          addons: Array.isArray(data.addons) ? data.addons : [],
         });
 
         if (!data.tallyUrl) {
-          throw new Error('URL del brief non disponibile.');
+          throw new Error('Link al brief non disponibile.');
         }
         setTallyUrl(data.tallyUrl);
 
@@ -79,7 +80,7 @@ export default function BriefPage() {
           <span className="s-tag">Brief</span>
           <h1>Il tuo ordine è stato confermato</h1>
           <p className="brief-intro">
-            Abbiamo già raccolto il tuo acquisto. Qui trovi il riepilogo del pacchetto e puoi completare il brief in un secondo step.
+            Abbiamo già raccolto il tuo acquisto. Qui trovi il riepilogo del pacchetto — il passo successivo è completare il brief.
           </p>
 
           <div className="brief-summary-box" id="riepilogo">
@@ -102,11 +103,22 @@ export default function BriefPage() {
                 </div>
 
                 {orderData.blocchi.length > 0 && (
-                  <div className="brief-blocks">
+                  <div className="brief-tag-group">
                     <span className="brief-summary-label">Sezioni incluse</span>
-                    <div className="brief-blocks-list">
+                    <div className="brief-tag-list">
                       {orderData.blocchi.map((blocco) => (
-                        <span key={blocco} className="brief-block-chip">{blocco}</span>
+                        <span key={blocco} className="brief-chip brief-chip-section">{blocco}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {orderData.addons.length > 0 && (
+                  <div className="brief-tag-group">
+                    <span className="brief-summary-label">Extra selezionati</span>
+                    <div className="brief-tag-list">
+                      {orderData.addons.map((addon) => (
+                        <span key={addon} className="brief-chip brief-chip-addon">{addon}</span>
                       ))}
                     </div>
                   </div>
@@ -114,8 +126,8 @@ export default function BriefPage() {
 
                 {selectedDomain ? (
                   <div className={`brief-domain-badge${showDomain ? ' show' : ''}`}>
-                    <span>Dominio confermato:</span>
-                    <strong>{selectedDomain}</strong>
+                    <span>Dominio confermato</span>
+                    <span className="brief-domain-value">{selectedDomain}</span>
                   </div>
                 ) : null}
               </>
@@ -124,28 +136,22 @@ export default function BriefPage() {
             )}
 
             {isMissingSession && !error ? (
-              <p className="brief-hint">Aggiungi <strong>?session_id=...</strong> nell’URL per vedere il riepilogo.</p>
+              <p className="brief-hint">Aggiungi ?session_id=... nell'URL per vedere il riepilogo.</p>
             ) : null}
           </div>
         </section>
 
         <section className="brief-card brief-card-form">
           <div className="brief-form-heading">
-            <span className="s-tag">Form</span>
+            <span className="s-tag">Prossimo passo</span>
             <h2>Completa il brief</h2>
-            <p>Il modulo Tally è già pronto con i dati del pagamento collegati all’ordine.</p>
+            <p>Rispondi a poche domande per darci tutti i dettagli del tuo sito — ci vogliono pochi minuti.</p>
           </div>
 
           {tallyUrl ? (
-            <iframe
-              id="tally-iframe"
-              className="brief-iframe"
-              src={tallyUrl}
-              title="Tally form per il brief"
-              loading="eager"
-            />
+            <a href={tallyUrl} className="brief-cta-button">Completa il brief →</a>
           ) : (
-            <div className="brief-loading">Caricamento del form…</div>
+            <span className="brief-cta-button brief-cta-button-loading">Preparazione del link in corso…</span>
           )}
         </section>
       </main>

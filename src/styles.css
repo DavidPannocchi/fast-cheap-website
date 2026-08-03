@@ -34,7 +34,7 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
   align-items:center;
   gap:16px 24px;
 }
-
+ 
 .brief-package-pill{
   display:inline-flex;
   align-items:center;
@@ -43,61 +43,109 @@ body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;
   background:var(--yellow);
   color:var(--night);
   font-family:'Syne',sans-serif;
-  font-weight:700;
-  font-size:15px;
+  font-size:16px;
   letter-spacing:-.2px;
 }
-
+ 
 .brief-summary-pairs{
   display:flex;
   flex-wrap:wrap;
   gap:20px 32px;
 }
-
+ 
 .brief-summary-pair{
   display:flex;
   flex-direction:column;
   gap:2px;
 }
-
+ 
 .brief-summary-label{
   font-size:12px;
   text-transform:uppercase;
   letter-spacing:.6px;
   color:var(--muted);
 }
-
+ 
 .brief-summary-value{
   font-size:15px;
   color:var(--night);
-  font-weight:600;
 }
-
-.brief-blocks{
+ 
+.brief-tag-group{
   margin-top:18px;
   display:flex;
   flex-direction:column;
   gap:8px;
 }
-
-.brief-blocks-list{
+ 
+.brief-tag-list{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
 }
-
-.brief-block-chip{
+ 
+.brief-chip{
   padding:6px 14px;
   border-radius:999px;
-  background:var(--lilac);
-  color:var(--night);
   font-size:13px;
-  font-weight:600;
+  color:var(--night);
 }
-
+ 
+.brief-chip-section{
+  background:var(--lilac);
+}
+ 
+.brief-chip-addon{
+  background:var(--mint);
+}
+ 
 .brief-summary-loading{
   font-size:15px;
   color:var(--muted);
+}
+ 
+.brief-domain-badge span:first-child{
+  color:var(--muted);
+  font-size:13px;
+  margin-right:8px;
+}
+ 
+.brief-domain-value{
+  color:var(--night);
+}
+ 
+/* Bottone CTA al posto dell'iframe */
+.brief-cta-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  padding:18px 24px;
+  border-radius:16px;
+  background:var(--night);
+  color:var(--white);
+  text-decoration:none;
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  text-align:center;
+  transition:opacity .2s ease;
+}
+ 
+.brief-cta-button:hover{
+  opacity:.85;
+}
+ 
+.brief-cta-button-loading{
+  background:var(--card);
+  color:var(--muted);
+  border:1px solid var(--border);
+  cursor:default;
+}
+ 
+@media (max-width: 780px){
+  .brief-summary-pairs{
+    gap:14px 24px;
+  }
 }
 
 .brief-hint,.brief-error{margin-top:10px;font-size:14px;color:var(--muted)}
