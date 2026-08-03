@@ -14,7 +14,7 @@
 // (nessun filesystem in Cloudflare Workers) — funzionava solo per lo script
 // locale. La Fase 2 sostituirà questo deployToNetlify con l'equivalente Cloudflare.
 
-import { runGeneration, deployToNetlify } from './_generation-core.js';
+import { runGeneration, deployToCloudflareWorkers } from './_generation-core.js';
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
@@ -38,7 +38,7 @@ export async function onRequest(context) {
 
   try {
     const result = await runGeneration(order, {
-      deliver: deployToNetlify,
+      deliver: deployToCloudflareWorkers,
       isLocalPreview: false,
     });
     return new Response(JSON.stringify(result), {

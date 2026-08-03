@@ -7,19 +7,21 @@
 //   node generate-site-local.mjs esempio-ordine.json            (locale, nessun credito)
 //   node generate-site-local.mjs esempio-ordine.json --deploy   (deploy Netlify vero, consuma crediti)
 
-import 'dotenv/config'; // richiede: npm install dotenv
+import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
-import { runGeneration, deployToNetlify, writeFilesLocally } from './functions/api/_generation-core.js';
+import { runGeneration, deployToNetlify, deployToCloudflareWorkers, writeFilesLocally } from './functions/api/_generation-core.js';
 
 async function main() {
   const orderFilePath = process.argv[2];
   const useNetlifyDeploy = process.argv.includes('--deploy');
+  const useCloudflareDeploy = process.argv.includes('--deploy-cloudflare');
 
   if (!orderFilePath) {
-    console.error('Uso: node generate-site-local.mjs percorso/ordine.json [--deploy]');
-    console.error('Senza --deploy, i file vengono scritti in ./output/<orderId>/ (nessun credito consumato).');
-    console.error('Con --deploy, viene creato un sito Netlify vero (consuma crediti, se ne hai ancora).');
+    console.error('Uso: node generate-site-local.mjs percorso/ordine.json [--deploy | --deploy-cloudflare]');
+    console.error('Senza flag: scrive in ./output/<orderId>/, nessun credito consumato.');
+    console.error('--deploy: crea un sito Netlify vero.');
+    console.error('--deploy-cloudflare: crea un Worker Cloudflare vero (Fase 2, appena implementata — testala qui prima di fidartene su Make).');
     process.exitCode = 1;
     return;
   }
@@ -33,19 +35,28 @@ async function main() {
 
   const order = JSON.parse(fs.readFileSync(resolvedPath, 'utf-8'));
 
+  let deliver = writeFilesLocally;
+  let isLocalPreview = true;
+  let modeLabel = '(modalità locale — nessun credito consumato, i file finiscono in ./output/)';
+
+  if (useNetlifyDeploy) {
+    deliver = deployToNetlify;
+    isLocalPreview = false;
+    modeLabel = '(deploy su Netlify attivo — consuma crediti)';
+  } else if (useCloudflareDeploy) {
+    deliver = deployToCloudflareWorkers;
+    isLocalPreview = false;
+    modeLabel = '(deploy su Cloudflare Workers attivo — Fase 2, prima volta che la testi)';
+  }
+
   console.log(`Generazione avviata per l'ordine ${order.orderId}...`);
-  console.log(useNetlifyDeploy
-    ? '(deploy su Netlify attivo — consuma crediti)'
-    : '(modalità locale — nessun credito consumato, i file finiscono in ./output/)');
+  console.log(modeLabel);
 
   try {
-    const result = await runGeneration(order, {
-      deliver: useNetlifyDeploy ? deployToNetlify : writeFilesLocally,
-      isLocalPreview: !useNetlifyDeploy,
-    });
+    const result = await runGeneration(order, { deliver, isLocalPreview });
     console.log('\n✅ Generazione completata.');
-    console.log(useNetlifyDeploy ? 'Anteprima online:' : 'File salvati in:', result.preview_url);
-    if (!useNetlifyDeploy) {
+    console.log(isLocalPreview ? 'File salvati in:' : 'Anteprima online:', result.preview_url);
+    if (isLocalPreview) {
       console.log(`Apri ${path.join(result.preview_url, 'index.html')} nel browser per vederlo.`);
     }
     console.log('Sezioni ok:', !result.section_mismatch);

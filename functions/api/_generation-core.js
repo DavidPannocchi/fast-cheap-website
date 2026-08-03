@@ -135,6 +135,110 @@ function buildInternalNotes(flaggedRequests, sectionMismatch, sectionCount, expe
 
 // Deploy Netlify — lasciato per compatibilità, non più il default. Utilizzabile
 // solo se hai ancora NETLIFY_API_TOKEN impostato e crediti residui.
+// Deploy su Cloudflare Workers (Direct Upload API), la Fase 2 promessa.
+// A differenza di Netlify, qui servono 3 chiamate in sequenza, ognuna che passa
+// un token temporaneo alla successiva. Parti segnate "DA VERIFICARE" sono
+// dedotte dalla documentazione ma non testate — controllale col test locale
+// prima di fidartene in automatico.
+export async function deployToCloudflareWorkers(orderId, files) {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  const MAX_NAME_LENGTH = 37;
+  const prefix = 'pronto-preview-';
+  const rawName = `${prefix}${orderId}`.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  const hash6 = createHash('sha1').update(String(orderId)).digest('hex').slice(0, 6);
+  const scriptName = rawName.length > MAX_NAME_LENGTH
+    ? `${rawName.slice(0, MAX_NAME_LENGTH - hash6.length - 1)}-${hash6}`
+    : rawName;
+
+  // Passo 1 — manifest: un hash per file, SHA-256 troncato ai primi 16 byte (32
+  // caratteri hex), non SHA-1 completo come su Netlify.
+  const manifest = {};
+  const fileByHash = {};
+  files.forEach((f) => {
+    const fullHash = createHash('sha256').update(f.content).digest('hex');
+    const shortHash = fullHash.slice(0, 32);
+    const filePath = f.path.startsWith('/') ? f.path : `/${f.path}`;
+    manifest[filePath] = { hash: shortHash, size: Buffer.byteLength(f.content, 'utf-8') };
+    fileByHash[shortHash] = f;
+  });
+
+  const sessionRes = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/scripts/${scriptName}/assets-upload-session`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifest }),
+    }
+  );
+  if (!sessionRes.ok) throw new Error(`Errore submit manifest Cloudflare: ${await sessionRes.text()}`);
+  const sessionData = await sessionRes.json();
+  // DA VERIFICARE: il nome esatto del campo con l'elenco hash da caricare e col
+  // JWT temporaneo può differire da questa ipotesi — controlla la risposta reale
+  // nel test locale e correggi qui se serve.
+  const uploadJwt = sessionData.result?.jwt;
+  const hashesToUpload = sessionData.result?.buckets?.flat() || Object.keys(fileByHash);
+
+  // Passo 2 — carica solo i file richiesti, base64, multipart/form-data
+  if (hashesToUpload.length > 0) {
+    const form = new FormData();
+    hashesToUpload.forEach((h) => {
+      const f = fileByHash[h];
+      if (!f) return;
+      const base64Content = Buffer.from(f.content, 'utf-8').toString('base64');
+      const blob = new Blob([base64Content], { type: 'text/plain' });
+      form.append(h, blob, h);
+    });
+
+    const uploadRes = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/assets/upload?base64=true`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${uploadJwt}` },
+        body: form,
+      }
+    );
+    if (!uploadRes.ok) throw new Error(`Errore upload file Cloudflare: ${await uploadRes.text()}`);
+  }
+  const uploadData = hashesToUpload.length > 0 ? await (await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/assets/upload?base64=true`,
+    { method: 'POST', headers: { Authorization: `Bearer ${uploadJwt}` } }
+  )).json().catch(() => ({})) : {};
+  const completionJwt = uploadData.result?.jwt || uploadJwt;
+
+  // Passo 3 — finalizza: un worker.js minimo che serve solo gli asset caricati
+  const workerScript = `export default { async fetch(request, env) { return env.ASSETS.fetch(request); } };`;
+  const metadata = {
+    main_module: 'worker.js',
+    compatibility_date: '2026-08-01',
+    assets: { jwt: completionJwt },
+  };
+
+  const finalizeForm = new FormData();
+  finalizeForm.append('metadata', JSON.stringify(metadata));
+  finalizeForm.append('worker.js', new Blob([workerScript], { type: 'application/javascript+module' }), 'worker.js');
+
+  const finalizeRes = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/scripts/${scriptName}`,
+    { method: 'PUT', headers: { Authorization: `Bearer ${apiToken}` }, body: finalizeForm }
+  );
+  if (!finalizeRes.ok) throw new Error(`Errore finalizzazione Worker Cloudflare: ${await finalizeRes.text()}`);
+
+  // DA VERIFICARE: potrebbe servire un'attivazione esplicita del sottodominio
+  // workers.dev (PUT .../scripts/{scriptName}/subdomain con {enabled:true})
+  // prima che l'URL risponda — se il test locale dà 404 sull'URL finale ma il
+  // deploy sopra è andato a buon fine, è il primo posto da controllare.
+  const subdomainRes = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/subdomain`,
+    { headers: { Authorization: `Bearer ${apiToken}` } }
+  );
+  const subdomainData = await subdomainRes.json().catch(() => ({}));
+  const subdomain = subdomainData.result?.subdomain || accountId;
+
+  return `https://${scriptName}.${subdomain}.workers.dev`;
+}
+
 export async function deployToNetlify(orderId, files) {
   const MAX_SUBDOMAIN_LENGTH = 37;
   const prefix = 'pronto-preview-';
