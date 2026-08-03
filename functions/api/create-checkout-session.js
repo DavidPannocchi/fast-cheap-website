@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  httpClient: Stripe.createFetchHttpClient(),
+});
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {

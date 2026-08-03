@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  httpClient: Stripe.createFetchHttpClient(),
+});
 
 const ADDON_ID_TO_PRICE = {
   revisione_post: 'price_1Tx5xV6AHTHA0VN1gXnSwxH4',      // Revisione dopo la consegna €79

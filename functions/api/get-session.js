@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  httpClient: Stripe.createFetchHttpClient(),
+});
 
 const TALLY_FORM_URL = process.env.TALLY_FORM_URL || '';
 
