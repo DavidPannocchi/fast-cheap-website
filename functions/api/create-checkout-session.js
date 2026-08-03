@@ -1,13 +1,13 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  httpClient: Stripe.createFetchHttpClient(),
-});
-
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
+
+  const stripe = new Stripe(context.env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 
   try {
     const body = await context.request.json();

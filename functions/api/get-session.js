@@ -1,9 +1,5 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  httpClient: Stripe.createFetchHttpClient(),
-});
-
 const TALLY_FORM_URL = process.env.TALLY_FORM_URL || '';
 
 const safeEncode = (value) => encodeURIComponent(value || '');
@@ -83,6 +79,10 @@ export async function onRequest(context) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+
+  const stripe = new Stripe(context.env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);

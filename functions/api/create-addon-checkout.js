@@ -1,9 +1,5 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  httpClient: Stripe.createFetchHttpClient(),
-});
-
 const ADDON_ID_TO_PRICE = {
   revisione_post: 'price_1Tx5xV6AHTHA0VN1gXnSwxH4',      // Revisione dopo la consegna €79
   assistenza_annuale: 'price_1TywDg6AHTHA0VN1XuMyEo6v',  // Assistenza annuale €119
@@ -15,6 +11,10 @@ export async function onRequest(context) {
   if (context.request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
+
+  const stripe = new Stripe(context.env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 
   try {
     const body = await context.request.json().catch(() => ({}));
