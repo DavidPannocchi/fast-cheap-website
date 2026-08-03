@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 const DOMAIN_CHECK_DELAY = 500;
 const MAKE_DOMAIN_WEBHOOK_URL = 'https://hook.eu1.make.com/TUO_WEBHOOK_DOMINIO';
-const CHECK_DOMAIN_PATH = '/.netlify/functions/check-domain';
+const CHECK_DOMAIN_PATH = '/api/check-domain';
 
 function normalizeInput(value) {
   return value
@@ -60,7 +60,7 @@ export default function DominioPage() {
     }
     setSessionId(sid);
 
-    fetch(`/.netlify/functions/get-session?session_id=${encodeURIComponent(sid)}`)
+    fetch(`/api/get-session?session_id=${encodeURIComponent(sid)}`)
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok || data?.error) throw new Error(data?.error || 'Impossibile caricare l’ordine.');

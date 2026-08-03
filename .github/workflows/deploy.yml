@@ -1,35 +1,33 @@
-name: Deploy to Netlify (Zero Credits)
+name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     steps:
-      - name: Checkout del codice
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configura Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Installa dipendenze
+      - name: Install dipendenze
         run: npm ci
 
-      - name: Compila il sito con Vite
+      - name: Build
         run: npm run build
 
-      - name: Invia a Netlify senza consumare crediti
-        uses: nwtgck/actions-netlify@v3.0
+      - name: Deploy su Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
         with:
-          publish-dir: './dist'
-          functions-dir: './netlify/functions'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=pronto-site

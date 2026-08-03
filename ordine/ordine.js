@@ -102,7 +102,7 @@ async function loadOrder() {
   }
 
   try {
-    const response = await fetch(`/.netlify/functions/get-order-status?order_id=${encodeURIComponent(orderId)}`);
+    const response = await fetch(`/api/get-order-status?order_id=${encodeURIComponent(orderId)}`);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || 'Ordine non trovato');
@@ -120,7 +120,7 @@ async function approveCurrentOrder() {
   approveButton.disabled = true;
   approveButton.textContent = 'Sto confermando…';
   try {
-    const response = await fetch(`/.netlify/functions/approve-order?order_id=${encodeURIComponent(orderId)}`, { method: 'POST' });
+    const response = await fetch(`/api/approve-order?order_id=${encodeURIComponent(orderId)}`, { method: 'POST' });
     if (!response.ok) {
       throw new Error('Impossibile aggiornare il tuo ordine al momento.');
     }
@@ -140,7 +140,7 @@ async function requestRevision() {
   revisionButton.disabled = true;
   revisionButton.textContent = 'Sto inviando…';
   try {
-    const response = await fetch(`/.netlify/functions/request-revision?order_id=${encodeURIComponent(orderId)}&note=${encodeURIComponent(note)}`, { method: 'POST' });
+    const response = await fetch(`/api/request-revision?order_id=${encodeURIComponent(orderId)}&note=${encodeURIComponent(note)}`, { method: 'POST' });
     if (!response.ok) {
       throw new Error('Impossibile inviare la richiesta di revisione.');
     }
@@ -155,7 +155,7 @@ async function requestRevision() {
 async function createAddonCheckout(addonId) {
   if (!orderId) return;
   try {
-    const response = await fetch('/.netlify/functions/create-addon-checkout', {
+    const response = await fetch('/api/create-addon-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order_id: orderId, addon_id: addonId }),

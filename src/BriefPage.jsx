@@ -24,7 +24,7 @@ export default function BriefPage() {
       }
 
       try {
-        const res = await fetch(`/.netlify/functions/get-session?session_id=${sessionId}`);
+        const res = await fetch(`/api/get-session?session_id=${sessionId}`);
         const data = await res.json();
 
         if (!res.ok || data?.error) {
