@@ -28,8 +28,26 @@ export async function runGeneration(order, { deliver = writeFilesLocally, isLoca
     const system = buildSystemPrompt();
     const { prompt, presetFinale, variante } = buildUserMessage(order);
 
-    const rawText = await callGeminiWithRetry(system, prompt);
-    const parsed = parseModelOutput(rawText);
+    // Il modello, generando un JSON molto grande (un sito intero come stringhe
+    // annidate), occasionalmente sbaglia l'escaping di un carattere e produce
+    // JSON non valido. È un errore statistico, non sistematico — ritentare
+    // l'intera chiamata (non solo il parsing) di solito risolve, perché il
+    // modello non sbaglia sempre nello stesso punto.
+    const MAX_PARSE_RETRIES = 2;
+    let parsed;
+    let lastParseError;
+    for (let attempt = 0; attempt <= MAX_PARSE_RETRIES; attempt++) {
+      const rawText = await callGeminiWithRetry(system, prompt);
+      try {
+        parsed = parseModelOutput(rawText);
+        lastParseError = null;
+        break;
+      } catch (err) {
+        lastParseError = err;
+        console.log(`Tentativo ${attempt + 1}/${MAX_PARSE_RETRIES + 1}: JSON non valido, ${attempt < MAX_PARSE_RETRIES ? 'riprovo' : 'esaurito il numero di tentativi'}.`);
+      }
+    }
+    if (lastParseError) throw lastParseError;
 
     const indexFile = parsed.files.find((f) => f.path === 'index.html');
     const sectionCount = indexFile ? (indexFile.content.match(/<section/g) || []).length : 0;
