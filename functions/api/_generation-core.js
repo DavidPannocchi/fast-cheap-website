@@ -158,6 +158,26 @@ function buildInternalNotes(flaggedRequests, sectionMismatch, sectionCount, expe
 // un token temporaneo alla successiva. Parti segnate "DA VERIFICARE" sono
 // dedotte dalla documentazione ma non testate — controllale col test locale
 // prima di fidartene in automatico.
+// Determina il content-type corretto in base all'estensione del file — senza
+// questo, Cloudflare serve tutto come testo semplice e il browser mostra il
+// codice sorgente invece di renderizzare la pagina.
+function getContentType(filePath) {
+  const ext = filePath.split('.').pop().toLowerCase();
+  const map = {
+    html: 'text/html',
+    css: 'text/css',
+    js: 'application/javascript',
+    json: 'application/json',
+    svg: 'image/svg+xml',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    ico: 'image/x-icon',
+  };
+  return map[ext] || 'application/octet-stream';
+}
+
 export async function deployToCloudflareWorkers(orderId, files) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   const apiToken = process.env.CLOUDFLARE_API_TOKEN;
@@ -210,7 +230,7 @@ export async function deployToCloudflareWorkers(orderId, files) {
       const f = fileByHash[h];
       if (!f) return;
       const base64Content = Buffer.from(f.content, 'utf-8').toString('base64');
-      const blob = new Blob([base64Content], { type: 'text/plain' });
+      const blob = new Blob([base64Content], { type: getContentType(f.path) });
       form.append(h, blob, h);
     });
 
