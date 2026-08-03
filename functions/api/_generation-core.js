@@ -198,7 +198,12 @@ export async function deployToCloudflareWorkers(orderId, files) {
   const uploadJwt = sessionData.result?.jwt;
   const hashesToUpload = sessionData.result?.buckets?.flat() || Object.keys(fileByHash);
 
-  // Passo 2 — carica solo i file richiesti, base64, multipart/form-data
+  // Passo 2 — carica solo i file richiesti, base64, multipart/form-data.
+  // Se ci sono file da caricare, il token di completamento arriva nella
+  // risposta di QUESTA chiamata (quando l'ultimo file atteso viene ricevuto,
+  // Cloudflare risponde 201 col JWT finale dentro result.jwt) — non serve
+  // (ed era sbagliato) fare una seconda chiamata separata per recuperarlo.
+  let completionJwt = uploadJwt;
   if (hashesToUpload.length > 0) {
     const form = new FormData();
     hashesToUpload.forEach((h) => {
@@ -218,12 +223,9 @@ export async function deployToCloudflareWorkers(orderId, files) {
       }
     );
     if (!uploadRes.ok) throw new Error(`Errore upload file Cloudflare: ${await uploadRes.text()}`);
+    const uploadData = await uploadRes.json();
+    completionJwt = uploadData.result?.jwt || uploadJwt;
   }
-  const uploadData = hashesToUpload.length > 0 ? await (await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/assets/upload?base64=true`,
-    { method: 'POST', headers: { Authorization: `Bearer ${uploadJwt}` } }
-  )).json().catch(() => ({})) : {};
-  const completionJwt = uploadData.result?.jwt || uploadJwt;
 
   // Passo 3 — finalizza: un worker.js minimo che serve solo gli asset caricati
   const workerScript = `export default { async fetch(request, env) { return env.ASSETS.fetch(request); } };`;
@@ -243,10 +245,21 @@ export async function deployToCloudflareWorkers(orderId, files) {
   );
   if (!finalizeRes.ok) throw new Error(`Errore finalizzazione Worker Cloudflare: ${await finalizeRes.text()}`);
 
-  // DA VERIFICARE: potrebbe servire un'attivazione esplicita del sottodominio
-  // workers.dev (PUT .../scripts/{scriptName}/subdomain con {enabled:true})
-  // prima che l'URL risponda — se il test locale dà 404 sull'URL finale ma il
-  // deploy sopra è andato a buon fine, è il primo posto da controllare.
+  // Attivazione esplicita del sottodominio workers.dev per QUESTO script — senza
+  // questa chiamata, il Worker esiste ma non risponde su nessun URL pubblico
+  // ("no active routes" è esattamente questo stato).
+  const enableSubdomainRes = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/scripts/${scriptName}/subdomain`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: true, previews_enabled: true }),
+    }
+  );
+  if (!enableSubdomainRes.ok) {
+    throw new Error(`Errore attivazione sottodominio Cloudflare: ${await enableSubdomainRes.text()}`);
+  }
+
   const subdomainRes = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/subdomain`,
     { headers: { Authorization: `Bearer ${apiToken}` } }
