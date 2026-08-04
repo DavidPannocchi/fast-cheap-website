@@ -38,6 +38,21 @@ const revisionButton = document.getElementById('request-revision');
 const extraRevisionButton = document.getElementById('add-revision-upgrade');
 const upsellButtons = Array.from(document.querySelectorAll('[data-addon-id]'));
 
+const briefPackage = document.getElementById('brief-package');
+const briefSettoreRow = document.getElementById('brief-settore-row');
+const briefSettore = document.getElementById('brief-settore');
+const briefStileRow = document.getElementById('brief-stile-row');
+const briefStile = document.getElementById('brief-stile');
+const briefBlocchiGroup = document.getElementById('brief-blocchi-group');
+const briefBlocchiList = document.getElementById('brief-blocchi-list');
+const briefAddonGroup = document.getElementById('brief-addon-group');
+const briefAddonList = document.getElementById('brief-addon-list');
+
+const preUpsellCard = document.getElementById('pre-upsell-card');
+const preUpsellHint = document.getElementById('pre-upsell-hint');
+const preUpsellButtons = preUpsellCard ? Array.from(preUpsellCard.querySelectorAll('[data-addon-id]')) : [];
+const statusesWithoutPreUpsell = ['consegnato', 'chiuso_supporto'];
+
 function setActiveBlock(status) {
   stateBlocks.forEach((block) => block.classList.toggle('is-active', block.dataset.stato === status));
 }
@@ -110,8 +125,78 @@ function renderOrder(data) {
     revisionHistoryEl.hidden = true;
   }
 
+  renderBriefSummary(data);
+  renderPreUpsell(data, status);
+
   setActiveBlock(status);
   setActiveStep(meta.step);
+}
+
+function renderBriefSummary(data) {
+  if (data.pacchetto) {
+    briefPackage.textContent = data.pacchetto;
+    briefPackage.hidden = false;
+  } else {
+    briefPackage.hidden = true;
+  }
+
+  if (data.settore) {
+    briefSettore.textContent = data.settore;
+    briefSettoreRow.hidden = false;
+  } else {
+    briefSettoreRow.hidden = true;
+  }
+
+  if (data.stile) {
+    briefStile.textContent = data.stile;
+    briefStileRow.hidden = false;
+  } else {
+    briefStileRow.hidden = true;
+  }
+
+  const blocchi = Array.isArray(data.blocchi) ? data.blocchi : [];
+  if (blocchi.length > 0) {
+    briefBlocchiList.innerHTML = '';
+    blocchi.forEach((blocco) => {
+      const chip = document.createElement('span');
+      chip.className = 'order-chip order-chip-block';
+      chip.textContent = blocco;
+      briefBlocchiList.appendChild(chip);
+    });
+    briefBlocchiGroup.hidden = false;
+  } else {
+    briefBlocchiGroup.hidden = true;
+  }
+
+  const addon = Array.isArray(data.addon) ? data.addon : [];
+  if (addon.length > 0) {
+    briefAddonList.innerHTML = '';
+    addon.forEach((item) => {
+      const chip = document.createElement('span');
+      chip.className = 'order-chip order-chip-addon';
+      chip.textContent = item;
+      briefAddonList.appendChild(chip);
+    });
+    briefAddonGroup.hidden = false;
+  } else {
+    briefAddonGroup.hidden = true;
+  }
+}
+
+function renderPreUpsell(data, status) {
+  if (!preUpsellCard) return;
+
+  if (statusesWithoutPreUpsell.includes(status)) {
+    preUpsellCard.style.display = 'none';
+    return;
+  }
+
+  preUpsellCard.style.display = '';
+  const previewReady = Boolean(data.link_anteprima);
+  preUpsellButtons.forEach((button) => {
+    button.disabled = !previewReady;
+  });
+  preUpsellHint.style.display = previewReady ? 'none' : '';
 }
 
 function showError(message) {

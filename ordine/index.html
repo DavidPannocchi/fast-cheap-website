@@ -42,6 +42,31 @@
         </div>
       </section>
 
+      <section class="order-card order-brief-card" id="order-brief-summary">
+        <p class="eyebrow">Il tuo ordine in breve</p>
+        <div class="order-brief-top">
+          <span id="brief-package" class="order-package-pill" hidden></span>
+          <div class="order-brief-pairs">
+            <div class="order-brief-pair" id="brief-settore-row" hidden>
+              <p class="label">Settore</p>
+              <p id="brief-settore" class="value">—</p>
+            </div>
+            <div class="order-brief-pair" id="brief-stile-row" hidden>
+              <p class="label">Stile</p>
+              <p id="brief-stile" class="value">—</p>
+            </div>
+          </div>
+        </div>
+        <div class="order-chip-group" id="brief-blocchi-group" hidden>
+          <p class="label">Blocchi acquistati</p>
+          <div class="order-chip-list" id="brief-blocchi-list"></div>
+        </div>
+        <div class="order-chip-group" id="brief-addon-group" hidden>
+          <p class="label">Add-on acquistati</p>
+          <div class="order-chip-list" id="brief-addon-list"></div>
+        </div>
+      </section>
+
       <section class="order-card stepper-card">
         <ol class="stepper" aria-label="Avanzamento ordine">
           <li class="step" data-step="ricevuto">
@@ -80,6 +105,16 @@
             </div>
           </li>
         </ol>
+      </section>
+
+      <section class="order-card upsell-card" id="pre-upsell-card">
+        <h2 class="upsell-title">Vuoi ampliare il tuo sito?</h2>
+        <div class="action-box">
+          <button class="secondary-btn" type="button" data-addon-id="revisione_post" disabled>Revisione extra (€79)</button>
+          <button class="secondary-btn" type="button" data-addon-id="sezione_extra" disabled>Sezione aggiuntiva</button>
+          <button class="secondary-btn" type="button" data-addon-id="servizi_extra" disabled>Altri servizi</button>
+        </div>
+        <p class="muted-copy" id="pre-upsell-hint">Disponibile appena la tua anteprima sarà pronta</p>
       </section>
 
       <section class="order-card state-card">

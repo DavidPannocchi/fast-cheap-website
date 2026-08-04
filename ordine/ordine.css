@@ -117,6 +117,80 @@ a { color: inherit; }
   color: var(--night);
 }
 
+.order-brief-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+  margin-top: 14px;
+}
+
+.order-package-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--night);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: -0.2px;
+}
+
+.order-brief-pairs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+}
+
+.order-brief-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-chip-group {
+  margin-top: 16px;
+}
+
+.order-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.order-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--night);
+}
+
+.order-chip-block {
+  background: var(--lilac);
+}
+
+.order-chip-addon {
+  background: var(--mint);
+}
+
+.upsell-title {
+  margin: 0;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.35rem;
+  color: var(--night);
+}
+
+.upsell-card .action-box {
+  margin-top: 16px;
+}
+
+.upsell-card .muted-copy {
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
 .stepper {
   list-style: none;
   display: flex;
@@ -296,6 +370,16 @@ a { color: inherit; }
 .primary-btn:hover, .secondary-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+}
+
+.primary-btn:disabled, .secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary-btn:disabled:hover, .secondary-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .muted-copy {

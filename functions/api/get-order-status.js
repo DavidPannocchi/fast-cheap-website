@@ -29,6 +29,12 @@ export async function onRequest(context) {
     const revisioniUsate = Number(getDisplayValue(findProperty(properties, ['Revisioni usate', 'Revisions used', 'Contatore revisioni usate'])) || 0);
     const revisioniIncluse = Number(getDisplayValue(findProperty(properties, ['Revisioni incluse', 'Revisions included'])) || 0);
     const dataStimataConsegna = getDisplayValue(findProperty(properties, ['Data stimata consegna', 'Delivery date', 'Data consegna']));
+    const settore = getDisplayValue(findProperty(properties, ['Settore', 'Sector']));
+    const stile = getDisplayValue(findProperty(properties, ['Stile', 'Style']));
+    const blocchiRaw = getDisplayValue(findProperty(properties, ['Blocchi', 'Blocks']));
+    const addonRaw = getDisplayValue(findProperty(properties, ['Add-on', 'Addon', 'Add-ons', 'Addons']));
+    const blocchi = blocchiRaw ? blocchiRaw.split(',').map((b) => b.trim()).filter(Boolean) : [];
+    const addon = addonRaw ? addonRaw.split(',').map((a) => a.trim()).filter(Boolean) : [];
 
     const storicoRevisioniRaw = getDisplayValue(properties['Storico revisioni'] || properties['Note']);
     const storicoRevisioni = storicoRevisioniRaw
@@ -44,6 +50,10 @@ export async function onRequest(context) {
       revisioni_incluse: revisioniIncluse,
       data_stimata_consegna: dataStimataConsegna,
       storico_revisioni: storicoRevisioni,
+      settore,
+      stile,
+      blocchi,
+      addon,
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
