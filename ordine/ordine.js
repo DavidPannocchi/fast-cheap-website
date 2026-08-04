@@ -19,7 +19,6 @@ const orderId = params.get('order_id')?.trim();
 
 const statusTitle = document.getElementById('status-title');
 const customerName = document.getElementById('customer-name');
-const packageName = document.getElementById('package-name');
 const deliveryDate = document.getElementById('delivery-date');
 const revisionCounter = document.getElementById('revision-counter');
 const previewEmbed = document.getElementById('preview-embed');
@@ -75,7 +74,6 @@ function renderOrder(data) {
 
   statusTitle.textContent = meta.title;
   customerName.textContent = data.cliente_nome || 'Cliente in attesa';
-  packageName.textContent = data.pacchetto || 'In definizione';
   deliveryDate.textContent = data.data_stimata_consegna || 'Da confermare';
 
   if (data.link_anteprima && statusesWithPreviewEmbed.includes(status)) {
@@ -202,7 +200,6 @@ function renderPreUpsell(data, status) {
 function showError(message) {
   statusTitle.textContent = 'Non siamo riusciti a trovare il tuo ordine';
   customerName.textContent = '—';
-  packageName.textContent = '—';
   deliveryDate.textContent = '—';
   setActiveBlock('fallback');
   setActiveStep('ricevuto');

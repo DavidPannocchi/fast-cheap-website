@@ -29,12 +29,30 @@ export async function onRequest(context) {
     const revisioniUsate = Number(getDisplayValue(findProperty(properties, ['Revisioni usate', 'Revisions used', 'Contatore revisioni usate'])) || 0);
     const revisioniIncluse = Number(getDisplayValue(findProperty(properties, ['Revisioni incluse', 'Revisions included'])) || 0);
     const dataStimataConsegna = getDisplayValue(findProperty(properties, ['Data stimata consegna', 'Delivery date', 'Data consegna']));
-    const settore = getDisplayValue(findProperty(properties, ['Settore', 'Sector']));
-    const stile = getDisplayValue(findProperty(properties, ['Stile', 'Style']));
-    const blocchiRaw = getDisplayValue(findProperty(properties, ['Blocchi', 'Blocks']));
-    const addonRaw = getDisplayValue(findProperty(properties, ['Add-on', 'Addon', 'Add-ons', 'Addons']));
-    const blocchi = blocchiRaw ? blocchiRaw.split(',').map((b) => b.trim()).filter(Boolean) : [];
-    const addon = addonRaw ? addonRaw.split(',').map((a) => a.trim()).filter(Boolean) : [];
+
+    // Settore/stile/blocchi/add-on non hanno colonne Notion dedicate: arrivano
+    // tutti dentro la colonna "Metadata" (testo semplice con il JSON copiato
+    // pari pari da metadata di Stripe, vedi create-checkout-session.js).
+    let orderMetadata = {};
+    const metadataRaw = getDisplayValue(properties['Metadata']);
+    if (metadataRaw) {
+      try {
+        orderMetadata = JSON.parse(metadataRaw);
+      } catch (err) {
+        console.warn(`Colonna "Metadata" non è un JSON valido per l'ordine ${orderId}: ${err.message}`);
+      }
+    }
+
+    const settore = orderMetadata.settore || '';
+    const stile = orderMetadata.stile || '';
+    const blocchi = (orderMetadata.blocchi || '').split(',').map((b) => b.trim()).filter(Boolean);
+
+    let addon = [];
+    try {
+      addon = JSON.parse(orderMetadata.addons || '[]');
+    } catch (err) {
+      addon = [];
+    }
 
     const storicoRevisioniRaw = getDisplayValue(properties['Storico revisioni'] || properties['Note']);
     const storicoRevisioni = storicoRevisioniRaw
