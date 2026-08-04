@@ -1,0 +1,109 @@
+{
+  "blocchi": "Menu,Copertina,Chi siamo,I nostri servizi,Galleria,Listino / Menu,Contattaci,FAQ",
+  "orderId": "cs_test_b1888DY0kN3nVrROY3fGhs0PpUGEHrzbwrPI8EqjJFbA6aLeJ8YM0FiNQ9",
+  "settore": "Professionista",
+  "contatti": {
+    "email": "wesiceb864@copawoke.com",
+    "telefono": "+3901932948938",
+    "indirizzo": "Roma"
+  },
+  "pacchetto": "pro",
+  "cosaEvitare": "avoid cheap looking content",
+  "tallyFields": [
+    {
+      "order_id": "cs_test_b1888DY0kN3nVrROY3fGhs0PpUGEHrzbwrPI8EqjJFbA6aLeJ8YM0FiNQ9",
+      "email": "wesiceb864@copawoke.com",
+      "blocco_chisiamo": "si",
+      "blocco_servizi": "si",
+      "blocco_listino": "si",
+      "blocco_galleria": "si",
+      "blocco_recensioni": "no",
+      "blocco_orari": "no",
+      "blocco_faq": "si",
+      "blocco_contattaci": "si",
+      "extra_contenuti": "si",
+      "extra_qr": "no",
+      "extra_logo": "si",
+      "Indicazioni sul logo": "elegant, minimal",
+      "Loghi di riferimento": null,
+      "Logo": null,
+      "Check: logo": null,
+      "Check: logo (Non ho un logo, usa il nome della mia attività)": null,
+      "Nome esatto": "drnomi",
+      "Partita IVA": 10,
+      "Email di contatto": "wesiceb864@copawoke.com",
+      "Numero di telefono": "+3901932948938",
+      "Indirizzo": "Roma",
+      "Social Media": [
+        "Sì"
+      ],
+      "www.socialmedia.com/nome-profilo": null,
+      "Descrivi la tua attività in 3 aggettivi": [
+        "Moderno",
+        "Professionale",
+        "Affidabile"
+      ],
+      "A chi si rivolge la tua attività": "patients",
+      "Cosa vi rende diversi": "good quality, knowledge, aesthetic eye",
+      "Check: cosa rende diversi": null,
+      "Check: cosa rende diversi (Non saprei, usa le informazioni fornite in questo form)": null,
+      "Anno di apertura": 2024,
+      " Slogan o claim principale": "dermatologist you can trust ",
+      "Check: slogan": null,
+      "Check: slogan (Non saprei, usa le informazioni fornite in questo form)": null,
+      "Call to action (azione) desiderata": [
+        "Prenota"
+      ],
+      "La tua attività in breve": "dermatologist in zurich, i do whole spectrum of dermatology but also aesthetic medicine",
+      "Check: descrizione attività": null,
+      "Check: descrizione attività (Non saprei, usa le informazioni fornite in questo form)": null,
+      "Descrivi i servizi": "dermatology consultations of any kind, maybe focus on specific popular fields, as well as aesthetic medicine",
+      "Carica un file": null,
+      "question_qWKz99 (CHECKBOXES)": [
+        "Non ho un file pronto"
+      ],
+      "Checkbox (Non ho un file pronto)": true,
+      "Elenco manuale": "Consultation: 70€\nAesthetic treatment: starting from 200€",
+      "Foto": null,
+      "www.wetransfer.com/cartella": null,
+      "Video": null,
+      "www.youtube.com/video": null,
+      "Recensioni dei tuoi clienti": null,
+      "Mostrare mappa": null,
+      "Attività aperta al pubblico": null,
+      "Lunedì_m": null,
+      "Lunedì_p": null,
+      "Martedì": null,
+      "14:00-18:00": null,
+      "Mercoledì": null,
+      "Giovedì": null,
+      "Venerdì": null,
+      "Sabato": null,
+      "Domenica": null,
+      "Chiuso": null,
+      "Dettagli aggiuntivi": null,
+      "Domande e risposte": "Experience? more than 5 years\n",
+      "Check: FAQ": null,
+      "Check: FAQ (Non saprei, usa le informazioni fornite in questo form)": null,
+      "WhatsApp": [
+        "Lo uso anche per WhatsApp"
+      ],
+      "Numero WhatsApp": null,
+      "Modulo di contatto": [
+        "Sì"
+      ],
+      "Istruzioni aggiuntive": "",
+      "Check: info aggiuntive": [
+        "Non saprei, usa le informazioni fornite in questo form"
+      ],
+      "Check: info aggiuntive (Non saprei, usa le informazioni fornite in questo form)": true,
+      "Cosa evitare": "avoid cheap looking content",
+      "Non saprei: diversi": null,
+      "Non saprei: diversi (Non saprei, usa le informazioni fornite in questo form)": null,
+      "question_yvdP00 (CHECKBOXES)": null,
+      "Checkbox (Non saprei, usa le informazioni fornite in questo form)": null
+    }
+  ],
+  "nomeAttivita": "drnomi",
+  "presetRichiesto": "Minimal & Pulito"
+}
