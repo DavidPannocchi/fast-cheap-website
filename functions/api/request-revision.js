@@ -47,10 +47,22 @@ export async function onRequest(context) {
       console.warn(`Property revision counter not found for order ${orderId}`);
     }
 
-    if (page.properties && Object.prototype.hasOwnProperty.call(page.properties, 'Note')) {
-      properties.Note = {
-        rich_text: [{ text: { content: note || 'Richiesta di revisione inviata dal cliente.' } }],
+    const pageProperties = page.properties || {};
+    const historyFieldKey = Object.prototype.hasOwnProperty.call(pageProperties, 'Storico revisioni')
+      ? 'Storico revisioni'
+      : (Object.prototype.hasOwnProperty.call(pageProperties, 'Note') ? 'Note' : null);
+
+    if (historyFieldKey) {
+      const existingValue = getDisplayValue(pageProperties[historyFieldKey]);
+      const dateLabel = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const historyEntry = `[${dateLabel}] richiesta del cliente: ${note || 'Richiesta di revisione inviata dal cliente.'}`;
+      const updatedValue = existingValue ? `${existingValue}\n${historyEntry}` : historyEntry;
+
+      properties[historyFieldKey] = {
+        rich_text: [{ text: { content: updatedValue } }],
       };
+    } else {
+      console.warn(`Nessun campo "Storico revisioni" o "Note" trovato per l'ordine ${orderId}; richiesta salvata senza storico.`);
     }
 
     const patchResponse = await fetch(`https://api.notion.com/v1/pages/${page.id}`, {

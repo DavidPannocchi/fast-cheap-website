@@ -30,6 +30,11 @@ export async function onRequest(context) {
     const revisioniIncluse = Number(getDisplayValue(findProperty(properties, ['Revisioni incluse', 'Revisions included'])) || 0);
     const dataStimataConsegna = getDisplayValue(findProperty(properties, ['Data stimata consegna', 'Delivery date', 'Data consegna']));
 
+    const storicoRevisioniRaw = getDisplayValue(properties['Storico revisioni'] || properties['Note']);
+    const storicoRevisioni = storicoRevisioniRaw
+      ? storicoRevisioniRaw.split('\n').map((line) => line.trim()).filter(Boolean)
+      : [];
+
     return new Response(JSON.stringify({
       stato,
       pacchetto,
@@ -38,6 +43,7 @@ export async function onRequest(context) {
       revisioni_usate: revisioniUsate,
       revisioni_incluse: revisioniIncluse,
       data_stimata_consegna: dataStimataConsegna,
+      storico_revisioni: storicoRevisioni,
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

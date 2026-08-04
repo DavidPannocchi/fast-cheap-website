@@ -45,36 +45,36 @@
       <section class="order-card stepper-card">
         <ol class="stepper" aria-label="Avanzamento ordine">
           <li class="step" data-step="ricevuto">
-            <span class="step-index">1</span>
-            <div>
+            <div class="step-marker"><span class="step-index">1</span></div>
+            <div class="step-body">
               <strong>Ricevuto</strong>
               <p>Abbiamo preso in carico l’ordine.</p>
             </div>
           </li>
           <li class="step" data-step="lavorazione">
-            <span class="step-index">2</span>
-            <div>
+            <div class="step-marker"><span class="step-index">2</span></div>
+            <div class="step-body">
               <strong>In lavorazione</strong>
               <p>Stiamo preparando il sito.</p>
             </div>
           </li>
           <li class="step" data-step="controllo">
-            <span class="step-index">3</span>
-            <div>
+            <div class="step-marker"><span class="step-index">3</span></div>
+            <div class="step-body">
               <strong>In controllo</strong>
               <p>Controlliamo ogni dettaglio.</p>
             </div>
           </li>
           <li class="step" data-step="pronto">
-            <span class="step-index">4</span>
-            <div>
+            <div class="step-marker"><span class="step-index">4</span></div>
+            <div class="step-body">
               <strong>Pronto per te</strong>
               <p>La tua anteprima è pronta.</p>
             </div>
           </li>
           <li class="step" data-step="consegnato">
-            <span class="step-index">5</span>
-            <div>
+            <div class="step-marker"><span class="step-index">5</span></div>
+            <div class="step-body">
               <strong>Consegnato</strong>
               <p>Il lavoro è online.</p>
             </div>
@@ -84,8 +84,8 @@
 
       <section class="order-card state-card">
         <div class="stato-blocco is-active" data-stato="loading">
-          <h3>Stiamo caricando il tuo ordine…</h3>
-          <p>Un attimo di pazienza, stiamo cercando i dettagli più recenti.</p>
+          <h3>Stiamo lavorando al tuo sito</h3>
+          <p>Qui vedrai l’anteprima non appena sarà pronta. Non c’è nulla che devi fare adesso.</p>
         </div>
 
         <div class="stato-blocco" data-stato="pagato">
@@ -112,7 +112,6 @@
           <h3>La tua anteprima è pronta</h3>
           <p>Puoi dare un’occhiata al risultato e dirci se vuoi cambiare qualcosa.</p>
           <div class="action-box" id="preview-actions">
-            <a id="preview-link" class="primary-btn" href="#">Apri l’anteprima</a>
             <button id="approve-order" class="primary-btn" type="button">Approva</button>
             <button id="request-revision" class="secondary-btn" type="button">Richiedi revisione</button>
             <button id="add-revision-upgrade" class="secondary-btn" type="button" style="display:none">Aggiungi una revisione (€79)</button>
@@ -149,11 +148,32 @@
           <h3>Abbiamo ricevuto il tuo ordine</h3>
           <p>Stiamo raccogliendo i dettagli. Torna a trovarci tra poco per vedere gli aggiornamenti.</p>
         </div>
+
+        <div class="preview-embed" id="preview-embed" hidden>
+          <div class="preview-stage" id="preview-stage">
+            <div class="browser-frame">
+              <span class="browser-dot"></span>
+              <span class="browser-dot"></span>
+              <span class="browser-dot"></span>
+              <span class="browser-url" id="preview-embed-url">anteprima.pronto.site</span>
+              <button id="preview-fullscreen" class="preview-fullscreen-btn" type="button">Schermo intero</button>
+            </div>
+            <iframe id="preview-iframe" class="preview-iframe" title="Anteprima del sito" loading="lazy"></iframe>
+            <button id="preview-close-fullscreen" class="preview-close-btn" type="button" aria-label="Chiudi schermo intero">✕</button>
+          </div>
+          <a id="preview-open-tab" class="preview-open-link" href="#" target="_blank" rel="noopener">Apri in una scheda separata →</a>
+        </div>
+
+        <details class="revision-history" id="revision-history" hidden>
+          <summary>Le tue richieste di revisione</summary>
+          <ol class="revision-history-list" id="revision-history-list"></ol>
+        </details>
       </section>
 
       <section class="order-card info-card">
         <p class="eyebrow">Nota</p>
         <p class="muted-copy">Se hai bisogno di aiuto, scrivici e ti aiutiamo a trovare la prossima mossa più semplice per te.</p>
+        <a id="support-email-btn" class="secondary-btn support-email-btn" href="#">Scrivici una email</a>
       </section>
     </main>
 

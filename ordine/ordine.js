@@ -1,5 +1,6 @@
 const stateBlocks = Array.from(document.querySelectorAll('.stato-blocco'));
 const steps = Array.from(document.querySelectorAll('.step'));
+const stepOrder = ['ricevuto', 'lavorazione', 'controllo', 'pronto', 'consegnato'];
 
 const statusMeta = {
   pagato: { title: 'Ordine ricevuto', step: 'ricevuto' },
@@ -20,8 +21,18 @@ const statusTitle = document.getElementById('status-title');
 const customerName = document.getElementById('customer-name');
 const packageName = document.getElementById('package-name');
 const deliveryDate = document.getElementById('delivery-date');
-const previewLink = document.getElementById('preview-link');
 const revisionCounter = document.getElementById('revision-counter');
+const previewEmbed = document.getElementById('preview-embed');
+const previewIframe = document.getElementById('preview-iframe');
+const previewEmbedUrl = document.getElementById('preview-embed-url');
+const previewOpenTab = document.getElementById('preview-open-tab');
+const previewStage = document.getElementById('preview-stage');
+const previewFullscreenBtn = document.getElementById('preview-fullscreen');
+const previewCloseFullscreenBtn = document.getElementById('preview-close-fullscreen');
+const statusesWithPreviewEmbed = ['pronto_anteprima', 'approvato', 'consegnato'];
+const revisionHistoryEl = document.getElementById('revision-history');
+const revisionHistoryList = document.getElementById('revision-history-list');
+const statusesWithRevisionHistory = ['pronto_anteprima', 'revisione_richiesta'];
 const approveButton = document.getElementById('approve-order');
 const revisionButton = document.getElementById('request-revision');
 const extraRevisionButton = document.getElementById('add-revision-upgrade');
@@ -32,7 +43,14 @@ function setActiveBlock(status) {
 }
 
 function setActiveStep(stepKey) {
-  steps.forEach((step) => step.classList.toggle('is-current', step.dataset.step === stepKey));
+  const currentIndex = stepOrder.indexOf(stepKey);
+  steps.forEach((step) => {
+    const stepIndex = stepOrder.indexOf(step.dataset.step);
+    const isDone = currentIndex !== -1 && stepIndex !== -1 && stepIndex < currentIndex;
+    const isCurrent = stepIndex === currentIndex;
+    step.classList.toggle('is-done', isDone);
+    step.classList.toggle('is-current', isCurrent);
+  });
 }
 
 function renderOrder(data) {
@@ -45,12 +63,14 @@ function renderOrder(data) {
   packageName.textContent = data.pacchetto || 'In definizione';
   deliveryDate.textContent = data.data_stimata_consegna || 'Da confermare';
 
-  if (data.link_anteprima) {
-    previewLink.href = data.link_anteprima;
-    previewLink.textContent = 'Apri l’anteprima';
+  if (data.link_anteprima && statusesWithPreviewEmbed.includes(status)) {
+    previewEmbed.hidden = false;
+    previewIframe.src = data.link_anteprima;
+    previewEmbedUrl.textContent = data.link_anteprima.replace(/^https?:\/\//, '');
+    previewOpenTab.href = data.link_anteprima;
   } else {
-    previewLink.removeAttribute('href');
-    previewLink.textContent = 'Anteprima in arrivo';
+    previewEmbed.hidden = true;
+    previewIframe.src = '';
   }
 
   if (status === 'pronto_anteprima') {
@@ -75,6 +95,19 @@ function renderOrder(data) {
     if (postDeliveryUpsell) {
       postDeliveryUpsell.style.display = 'block';
     }
+  }
+
+  const revisionHistory = Array.isArray(data.storico_revisioni) ? data.storico_revisioni : [];
+  if (revisionHistory.length > 0 && statusesWithRevisionHistory.includes(status)) {
+    revisionHistoryList.innerHTML = '';
+    revisionHistory.forEach((entry) => {
+      const li = document.createElement('li');
+      li.textContent = entry;
+      revisionHistoryList.appendChild(li);
+    });
+    revisionHistoryEl.hidden = false;
+  } else {
+    revisionHistoryEl.hidden = true;
   }
 
   setActiveBlock(status);
@@ -173,6 +206,39 @@ async function createAddonCheckout(addonId) {
   } catch (error) {
     alert(error.message || 'Si è verificato un errore.');
   }
+}
+
+function enterPreviewFullscreen() {
+  if (previewStage.requestFullscreen) {
+    previewStage.requestFullscreen().catch(() => previewStage.classList.add('is-fullscreen-fallback'));
+  } else {
+    previewStage.classList.add('is-fullscreen-fallback');
+  }
+}
+
+function exitPreviewFullscreen() {
+  if (document.fullscreenElement === previewStage) {
+    document.exitFullscreen();
+  }
+  previewStage.classList.remove('is-fullscreen-fallback');
+}
+
+if (previewFullscreenBtn) {
+  previewFullscreenBtn.addEventListener('click', enterPreviewFullscreen);
+  previewCloseFullscreenBtn.addEventListener('click', exitPreviewFullscreen);
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      previewStage.classList.remove('is-fullscreen-fallback');
+    }
+  });
+}
+
+const supportEmailBtn = document.getElementById('support-email-btn');
+if (supportEmailBtn) {
+  // TODO: sostituire con l'indirizzo email reale del supporto pronto.site
+  const SUPPORT_EMAIL = 'PLACEHOLDER@pronto.site';
+  const subject = encodeURIComponent(`Assistenza ordine ${orderId || ''}`);
+  supportEmailBtn.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}`;
 }
 
 approveButton.addEventListener('click', approveCurrentOrder);
