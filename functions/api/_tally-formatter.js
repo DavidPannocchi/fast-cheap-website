@@ -1,40 +1,22 @@
 // _tally-formatter.js
-// Logica identica alla versione Netlify — solo sintassi import/export.
+// Il modulo Tally di Make restituisce un oggetto piatto — ogni domanda è già
+// una chiave leggibile, il valore è già testo umano (Make/Tally risolvono gli
+// ID delle opzioni multiple scelta prima ancora che arrivino qui). A volte
+// quell'oggetto arriva incapsulato in un array di un solo elemento (dipende
+// da come è mappato in Make) — gestiamo entrambi i casi.
 
-function resolveFieldValue(field) {
-  const { value, options } = field;
+const SKIP_KEYS = new Set(['order_id', 'email']); // già gestiti altrove (orderId, contatti.email)
 
-  if (value === undefined || value === null || value === '') return '(non risposto)';
+export function formatTallyFields(tallyFields) {
+  const flat = Array.isArray(tallyFields) ? tallyFields[0] : tallyFields;
+  if (!flat || typeof flat !== 'object') return '(nessuna risposta ricevuta dal brief)';
 
-  if (Array.isArray(value)) {
-    if (Array.isArray(options) && options.length) {
-      const labels = value
-        .map((id) => options.find((o) => o.id === id)?.text || id)
-        .join(', ');
-      return labels || '(non risposto)';
-    }
-    return value.length ? value.join(', ') : '(non risposto)';
-  }
+  const righe = Object.entries(flat)
+    .filter(([key, value]) => !SKIP_KEYS.has(key) && value !== null && value !== undefined && value !== '')
+    .map(([key, value]) => {
+      const risposta = Array.isArray(value) ? value.join(', ') : String(value);
+      return `${key}: ${risposta}`;
+    });
 
-  if (Array.isArray(options) && options.length) {
-    const opt = options.find((o) => o.id === value);
-    if (opt) return opt.text;
-  }
-
-  return String(value);
-}
-
-export function formatTallyFields(fields) {
-  if (!Array.isArray(fields) || !fields.length) return '(nessuna risposta ricevuta dal brief)';
-
-  const DECORATIVE_TYPES = new Set(['HEADING', 'TEXT_BLOCK', 'DIVIDER', 'IMAGE']);
-
-  return fields
-    .filter((f) => f.label && !DECORATIVE_TYPES.has(f.type))
-    .map((f) => {
-      const risposta = resolveFieldValue(f);
-      const tipo = f.type ? ` [tipo: ${f.type}]` : '';
-      return `${f.label}${tipo}: ${risposta}`;
-    })
-    .join('\n');
+  return righe.length ? righe.join('\n') : '(nessuna risposta ricevuta dal brief)';
 }
