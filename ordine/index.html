@@ -20,24 +20,6 @@
         <p>Qui trovi lo stato del progetto, gli aggiornamenti e i prossimi passi in modo semplice e chiaro.</p>
       </header>
 
-      <section class="order-card order-card-summary" aria-live="polite">
-        <div class="order-card-header">
-          <p class="eyebrow">Stato attuale</p>
-          <h2 id="status-title">Stiamo controllando il tuo ordine…</h2>
-        </div>
-
-        <div class="order-summary-grid">
-          <div>
-            <p class="label">Cliente</p>
-            <p id="customer-name" class="value">—</p>
-          </div>
-          <div>
-            <p class="label">Consegna prevista</p>
-            <p id="delivery-date" class="value">—</p>
-          </div>
-        </div>
-      </section>
-
       <section class="order-card order-brief-card" id="order-brief-summary">
         <p class="eyebrow">Il tuo ordine in breve</p>
         <div class="order-brief-top">
@@ -63,7 +45,23 @@
         </div>
       </section>
 
-      <section class="order-card stepper-card">
+      <section class="order-card order-card-summary" aria-live="polite">
+        <div class="order-card-header">
+          <p class="eyebrow">Stato attuale</p>
+          <h2 id="status-title">Stiamo controllando il tuo ordine…</h2>
+        </div>
+
+        <div class="order-summary-grid">
+          <div>
+            <p class="label">Cliente</p>
+            <p id="customer-name" class="value">—</p>
+          </div>
+          <div>
+            <p class="label">Consegna prevista</p>
+            <p id="delivery-date" class="value">—</p>
+          </div>
+        </div>
+
         <ol class="stepper" aria-label="Avanzamento ordine">
           <li class="step" data-step="ricevuto">
             <div class="step-marker"><span class="step-index">1</span></div>

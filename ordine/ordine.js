@@ -52,6 +52,14 @@ const preUpsellHint = document.getElementById('pre-upsell-hint');
 const preUpsellButtons = preUpsellCard ? Array.from(preUpsellCard.querySelectorAll('[data-addon-id]')) : [];
 const statusesWithoutPreUpsell = ['consegnato', 'chiuso_supporto'];
 
+function formatDateIt(rawDate) {
+  if (!rawDate) return '';
+  const match = String(rawDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return rawDate;
+  const [, year, month, day] = match;
+  return `${day}-${month}-${year}`;
+}
+
 function setActiveBlock(status) {
   stateBlocks.forEach((block) => block.classList.toggle('is-active', block.dataset.stato === status));
 }
@@ -74,7 +82,7 @@ function renderOrder(data) {
 
   statusTitle.textContent = meta.title;
   customerName.textContent = data.cliente_nome || 'Cliente in attesa';
-  deliveryDate.textContent = data.data_stimata_consegna || 'Da confermare';
+  deliveryDate.textContent = formatDateIt(data.data_stimata_consegna) || 'Da confermare';
 
   if (data.link_anteprima && statusesWithPreviewEmbed.includes(status)) {
     previewEmbed.hidden = false;

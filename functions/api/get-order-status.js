@@ -43,15 +43,22 @@ export async function onRequest(context) {
       }
     }
 
-    const settore = orderMetadata.settore || '';
-    const stile = orderMetadata.stile || '';
+    const settore = orderMetadata.settore || orderMetadata.Settore || '';
+    const stile = orderMetadata.stile || orderMetadata.Stile || '';
     const blocchi = (orderMetadata.blocchi || '').split(',').map((b) => b.trim()).filter(Boolean);
 
+    // metadata.addons può arrivare già come array (se l'automazione Notion ha
+    // deserializzato il JSON di Stripe) oppure come stringa JSON annidata
+    // (se è stato copiato pari pari da Stripe, che accetta solo stringhe).
     let addon = [];
-    try {
-      addon = JSON.parse(orderMetadata.addons || '[]');
-    } catch (err) {
-      addon = [];
+    if (Array.isArray(orderMetadata.addons)) {
+      addon = orderMetadata.addons;
+    } else if (typeof orderMetadata.addons === 'string' && orderMetadata.addons) {
+      try {
+        addon = JSON.parse(orderMetadata.addons);
+      } catch (err) {
+        addon = [];
+      }
     }
 
     const storicoRevisioniRaw = getDisplayValue(properties['Storico revisioni'] || properties['Note']);
