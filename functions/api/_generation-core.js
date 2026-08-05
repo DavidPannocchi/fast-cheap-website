@@ -16,60 +16,49 @@
 import { createHash } from 'node:crypto';
 import { buildSystemPrompt, buildUserMessage, normalizeBlocchi } from './_prompt-builder.js';
 import { queryPageByOrderId } from './_notion-helpers.js';
-import { sendTelegramMessage } from './_telegram.js';
 
 const MODEL = 'gemini-3.6-flash';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-
-// Parte pesante condivisa: chiamata Gemini (con retry sul parsing) + deploy.
-// Estratta da runGeneration così sia il flusso locale (generate-site-local.mjs)
-// sia il flusso asincrono su Cloudflare Pages (runGenerationAsync, invocato
-// dentro waitUntil) possono riusarla senza duplicare la logica.
-async function generateAndDeploy(order, deliver) {
-  const system = buildSystemPrompt();
-  const { prompt, presetFinale, variante } = buildUserMessage(order);
-
-  // Il modello, generando un JSON molto grande (un sito intero come stringhe
-  // annidate), occasionalmente sbaglia l'escaping di un carattere e produce
-  // JSON non valido. È un errore statistico, non sistematico — ritentare
-  // l'intera chiamata (non solo il parsing) di solito risolve, perché il
-  // modello non sbaglia sempre nello stesso punto.
-  const MAX_PARSE_RETRIES = 2;
-  let parsed;
-  let lastParseError;
-  for (let attempt = 0; attempt <= MAX_PARSE_RETRIES; attempt++) {
-    const rawText = await callGeminiWithRetry(system, prompt);
-    try {
-      parsed = parseModelOutput(rawText);
-      lastParseError = null;
-      break;
-    } catch (err) {
-      lastParseError = err;
-      console.log(`Tentativo ${attempt + 1}/${MAX_PARSE_RETRIES + 1}: JSON non valido, ${attempt < MAX_PARSE_RETRIES ? 'riprovo' : 'esaurito il numero di tentativi'}.`);
-    }
-  }
-  if (lastParseError) throw lastParseError;
-
-  const indexFile = parsed.files.find((f) => f.path === 'index.html');
-  const sectionCount = indexFile ? (indexFile.content.match(/<section/g) || []).length : 0;
-  const expectedSections = normalizeBlocchi(order.blocchi).filter(
-    (b) => b !== 'Copertina' && b !== 'Menu'
-  ).length;
-  const sectionMismatch = sectionCount !== expectedSections;
-
-  const previewLocation = await deliver(order.orderId, parsed.files);
-
-  const notes = buildInternalNotes(parsed.flagged_requests, sectionMismatch, sectionCount, expectedSections);
-
-  return { parsed, presetFinale, variante, previewLocation, sectionMismatch, notes };
-}
 
 export async function runGeneration(order, { deliver = writeFilesLocally, isLocalPreview = true } = {}) {
   const { orderId } = order;
   if (!orderId) throw new Error('order_id mancante');
 
   try {
-    const { parsed, presetFinale, variante, previewLocation, sectionMismatch, notes } = await generateAndDeploy(order, deliver);
+    const system = buildSystemPrompt();
+    const { prompt, presetFinale, variante } = buildUserMessage(order);
+
+    // Il modello, generando un JSON molto grande (un sito intero come stringhe
+    // annidate), occasionalmente sbaglia l'escaping di un carattere e produce
+    // JSON non valido. È un errore statistico, non sistematico — ritentare
+    // l'intera chiamata (non solo il parsing) di solito risolve, perché il
+    // modello non sbaglia sempre nello stesso punto.
+    const MAX_PARSE_RETRIES = 2;
+    let parsed;
+    let lastParseError;
+    for (let attempt = 0; attempt <= MAX_PARSE_RETRIES; attempt++) {
+      const rawText = await callGeminiWithRetry(system, prompt);
+      try {
+        parsed = parseModelOutput(rawText);
+        lastParseError = null;
+        break;
+      } catch (err) {
+        lastParseError = err;
+        console.log(`Tentativo ${attempt + 1}/${MAX_PARSE_RETRIES + 1}: JSON non valido, ${attempt < MAX_PARSE_RETRIES ? 'riprovo' : 'esaurito il numero di tentativi'}.`);
+      }
+    }
+    if (lastParseError) throw lastParseError;
+
+    const indexFile = parsed.files.find((f) => f.path === 'index.html');
+    const sectionCount = indexFile ? (indexFile.content.match(/<section/g) || []).length : 0;
+    const expectedSections = normalizeBlocchi(order.blocchi).filter(
+      (b) => b !== 'Copertina' && b !== 'Menu'
+    ).length;
+    const sectionMismatch = sectionCount !== expectedSections;
+
+    const previewLocation = await deliver(orderId, parsed.files);
+
+    const notes = buildInternalNotes(parsed.flagged_requests, sectionMismatch, sectionCount, expectedSections);
 
     await updateNotionAfterGeneration({
       orderId,
@@ -95,38 +84,6 @@ export async function runGeneration(order, { deliver = writeFilesLocally, isLoca
       noteInterne: `Errore durante la generazione: ${error.message}`,
     }).catch(() => {});
     throw error;
-  }
-}
-
-// Lavoro pesante del flusso Cloudflare Pages Functions (generate-site.js),
-// eseguito dentro context.waitUntil DOPO che la Response 202 è già stata
-// inviata a Make. Nessuno è più in ascolto della risposta a questo punto —
-// l'unico modo che abbiamo di comunicare l'esito è Notion + Telegram, quindi
-// l'errore viene loggato/notificato qui e MAI rilanciato verso l'alto.
-export async function runGenerationAsync(context, orderId, order) {
-  const env = context.env;
-
-  try {
-    const { parsed, presetFinale, variante, previewLocation, sectionMismatch, notes } = await generateAndDeploy(order, deployToCloudflareWorkers);
-
-    await updateNotionAfterGeneration({
-      orderId,
-      stato: sectionMismatch ? 'in_controllo_urgente' : 'in_controllo',
-      linkAnteprimaInterna: previewLocation,
-      presetUsato: parsed.preset_usato || presetFinale,
-      varianteUsata: parsed.variante_usata || variante,
-      noteInterne: notes,
-    });
-
-    await sendTelegramMessage(env, `✅ Anteprima pronta per QA — ordine ${orderId}\n${previewLocation}`);
-  } catch (error) {
-    await updateNotionAfterGeneration({
-      orderId,
-      stato: 'errore_generazione',
-      noteInterne: `Errore durante la generazione: ${error.message}`,
-    }).catch(() => {});
-
-    await sendTelegramMessage(env, `❌ Generazione fallita — ordine ${orderId}\n${error.message}`);
   }
 }
 
@@ -417,7 +374,7 @@ export async function writeFilesLocally(orderId, files) {
   return outputDir;
 }
 
-export async function updateNotionAfterGeneration({ orderId, stato, linkAnteprimaInterna, presetUsato, varianteUsata, noteInterne }) {
+async function updateNotionAfterGeneration({ orderId, stato, linkAnteprimaInterna, presetUsato, varianteUsata, noteInterne }) {
   const page = await queryPageByOrderId(orderId);
   if (!page) throw new Error(`Ordine ${orderId} non trovato in Notion`);
 
