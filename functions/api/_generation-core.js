@@ -16,6 +16,7 @@
 import { createHash } from 'node:crypto';
 import { buildSystemPrompt, buildUserMessage, normalizeBlocchi } from './_prompt-builder.js';
 import { queryPageByOrderId } from './_notion-helpers.js';
+import { sendTelegramMessage } from './_telegram.js';
 
 const MODEL = 'gemini-3.6-flash';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
@@ -71,6 +72,8 @@ export async function runGeneration(order, { deliver = writeFilesLocally, isLoca
         : notes,
     });
 
+    await sendTelegramMessage(process.env, `✅ Anteprima pronta per QA — ordine ${orderId}\n${previewLocation}`);
+
     return {
       ok: true,
       preview_url: previewLocation,
@@ -83,6 +86,9 @@ export async function runGeneration(order, { deliver = writeFilesLocally, isLoca
       stato: 'errore_generazione',
       noteInterne: `Errore durante la generazione: ${error.message}`,
     }).catch(() => {});
+
+    await sendTelegramMessage(process.env, `❌ Generazione fallita — ordine ${orderId}\n${error.message}`);
+
     throw error;
   }
 }
