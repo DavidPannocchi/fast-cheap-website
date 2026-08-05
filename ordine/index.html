@@ -187,7 +187,14 @@
               <span class="browser-url" id="preview-embed-url">anteprima.pronto.site</span>
               <button id="preview-fullscreen" class="preview-fullscreen-btn" type="button">Schermo intero</button>
             </div>
-            <iframe id="preview-iframe" class="preview-iframe" title="Anteprima del sito" loading="lazy"></iframe>
+            <div class="preview-viewport" id="preview-viewport">
+              <iframe id="preview-iframe" class="preview-iframe" title="Anteprima del sito" loading="lazy"></iframe>
+              <div class="preview-reveal-overlay" id="preview-reveal-overlay" hidden>
+                <div class="preview-reveal-icon">✨</div>
+                <p class="preview-reveal-text">La tua anteprima è pronta</p>
+                <button id="preview-reveal-btn" class="primary-btn" type="button">Scoprila 👀</button>
+              </div>
+            </div>
             <button id="preview-close-fullscreen" class="preview-close-btn" type="button" aria-label="Chiudi schermo intero">✕</button>
           </div>
           <a id="preview-open-tab" class="preview-open-link" href="#" target="_blank" rel="noopener">Apri in una scheda separata →</a>

@@ -463,12 +463,73 @@ a { color: inherit; }
   transform: translateY(-1px);
 }
 
+.preview-viewport {
+  position: relative;
+}
+
 .preview-iframe {
   display: block;
   width: 100%;
   height: 320px;
   border: 0;
   background: var(--white);
+  transform: scale(1);
+  transition: transform 0.7s ease;
+}
+
+.preview-viewport.is-pending-reveal .preview-iframe {
+  transform: scale(0.98);
+}
+
+.preview-reveal-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+  background: rgba(26, 21, 39, 0.55);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease, backdrop-filter 0.7s ease, -webkit-backdrop-filter 0.7s ease;
+}
+
+.preview-viewport.is-pending-reveal .preview-reveal-overlay {
+  opacity: 1;
+  pointer-events: auto;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.preview-reveal-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.preview-reveal-text {
+  margin: 0;
+  color: var(--white);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-iframe,
+  .preview-reveal-overlay {
+    transition: none;
+  }
 }
 
 .preview-close-btn {
@@ -504,10 +565,14 @@ a { color: inherit; }
   background: var(--night);
 }
 
-.preview-stage:fullscreen .preview-iframe,
-.preview-stage.is-fullscreen-fallback .preview-iframe {
+.preview-stage:fullscreen .preview-viewport,
+.preview-stage.is-fullscreen-fallback .preview-viewport {
   flex: 1;
-  height: auto;
+}
+
+.preview-stage:fullscreen .preview-viewport .preview-iframe,
+.preview-stage.is-fullscreen-fallback .preview-viewport .preview-iframe {
+  height: 100%;
 }
 
 .preview-stage:fullscreen .preview-close-btn,

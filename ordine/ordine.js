@@ -28,6 +28,9 @@ const previewOpenTab = document.getElementById('preview-open-tab');
 const previewStage = document.getElementById('preview-stage');
 const previewFullscreenBtn = document.getElementById('preview-fullscreen');
 const previewCloseFullscreenBtn = document.getElementById('preview-close-fullscreen');
+const previewViewport = document.getElementById('preview-viewport');
+const previewRevealOverlay = document.getElementById('preview-reveal-overlay');
+const previewRevealBtn = document.getElementById('preview-reveal-btn');
 const statusesWithPreviewEmbed = ['pronto_anteprima', 'approvato', 'consegnato'];
 const revisionHistoryEl = document.getElementById('revision-history');
 const revisionHistoryList = document.getElementById('revision-history-list');
@@ -89,6 +92,15 @@ function renderOrder(data) {
     previewIframe.src = data.link_anteprima;
     previewEmbedUrl.textContent = data.link_anteprima.replace(/^https?:\/\//, '');
     previewOpenTab.href = data.link_anteprima;
+
+    const alreadyRevealed = orderId && sessionStorage.getItem(`preview-revealed-${orderId}`) === '1';
+    if (alreadyRevealed) {
+      previewViewport.classList.remove('is-pending-reveal');
+      previewRevealOverlay.hidden = true;
+    } else {
+      previewViewport.classList.add('is-pending-reveal');
+      previewRevealOverlay.hidden = false;
+    }
   } else {
     previewEmbed.hidden = true;
     previewIframe.src = '';
@@ -321,6 +333,29 @@ if (previewFullscreenBtn) {
       previewStage.classList.remove('is-fullscreen-fallback');
     }
   });
+}
+
+function revealPreview() {
+  if (!previewViewport.classList.contains('is-pending-reveal')) return;
+
+  if (orderId) {
+    sessionStorage.setItem(`preview-revealed-${orderId}`, '1');
+  }
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  previewViewport.classList.remove('is-pending-reveal');
+
+  if (prefersReducedMotion) {
+    previewRevealOverlay.hidden = true;
+  } else {
+    window.setTimeout(() => {
+      previewRevealOverlay.hidden = true;
+    }, 700);
+  }
+}
+
+if (previewRevealBtn) {
+  previewRevealBtn.addEventListener('click', revealPreview);
 }
 
 const supportEmailBtn = document.getElementById('support-email-btn');
