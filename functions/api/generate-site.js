@@ -9,12 +9,14 @@
 //   Lambda-style — quindi si legge con .json() invece di JSON.parse(event.body)
 // - si ritorna un vero oggetto Response, non {statusCode, body}
 //
-// IMPORTANTE: passiamo esplicitamente deliver: deployToNetlify qui, perché il
-// default di runGeneration (scrittura su disco) NON funziona in questo runtime
-// (nessun filesystem in Cloudflare Workers) — funzionava solo per lo script
-// locale. La Fase 2 sostituirà questo deployToNetlify con l'equivalente Cloudflare.
+// Flusso asincrono: la generazione vera (Gemini + deploy Cloudflare, che può
+// richiedere decine di secondi) gira dentro context.waitUntil DOPO che questa
+// funzione ha già risposto 202 a Make. Senza questo, Make resta bloccato ad
+// aspettare l'intera generazione e rischia il timeout della sua HTTP request.
+// L'esito reale (successo/errore) arriva via Notion + notifica Telegram, non
+// più nella risposta HTTP.
 
-import { runGeneration, deployToCloudflareWorkers } from './_generation-core.js';
+import { runGenerationAsync, updateNotionAfterGeneration } from './_generation-core.js';
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
@@ -36,19 +38,27 @@ export async function onRequest(context) {
     });
   }
 
-  try {
-    const result = await runGeneration(order, {
-      deliver: deployToCloudflareWorkers,
-      isLocalPreview: false,
-    });
-    return new Response(JSON.stringify(result), {
-      status: 200,
+  const orderId = order.orderId;
+  if (!orderId) {
+    return new Response(JSON.stringify({ error: 'order_id mancante' }), {
+      status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  try {
+    await updateNotionAfterGeneration({ orderId, stato: 'in_lavorazione' });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message || 'Errore interno durante la generazione' }), {
+    return new Response(JSON.stringify({ error: error.message || 'Errore aggiornamento Notion' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+
+  context.waitUntil(runGenerationAsync(context, orderId, order));
+
+  return new Response(JSON.stringify({ status: 'accepted', order_id: orderId }), {
+    status: 202,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
