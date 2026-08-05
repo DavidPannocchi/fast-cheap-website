@@ -44,7 +44,10 @@ export async function onRequest(context) {
     }
 
     const settore = orderMetadata.settore || orderMetadata.Settore || '';
-    const stile = orderMetadata.stile || orderMetadata.Stile || '';
+    // La colonna "Metadata" reale usa la chiave "preset" (es. "Elegante & Raffinato",
+    // scritta da _generation-core.js dopo la generazione del sito), non "stile"
+    // come nei metadata originali di Stripe — teniamo entrambe per compatibilità.
+    const stile = orderMetadata.stile || orderMetadata.Stile || orderMetadata.preset || orderMetadata.Preset || '';
     const blocchi = (orderMetadata.blocchi || '').split(',').map((b) => b.trim()).filter(Boolean);
 
     // metadata.addons può arrivare già come array (se l'automazione Notion ha
