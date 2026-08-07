@@ -34,8 +34,6 @@ const BASE_PRICE=199;
 const PRO_PRICE=399;
 const BASE_SECTION_LIMIT=4;
 const ST={base:BASE_PRICE,plan:'base',addons:0,flatAddonTotal:0,revisionRounds:0,settore:null,stile:null,blocks:[],addonNames:[],flatAddonNames:[]};
-let currentStep=1;
-let lastIsPro=false;
 
 // ── ADDON CATALOG ──
 // attivo:false nasconde l'addon dal configuratore senza rimuoverlo dal catalogo.
@@ -87,7 +85,6 @@ function pickStyle(el,name){
   document.querySelector('#sl-sty .sl-v').textContent=name;
   document.querySelector('#sl-sty .sl-v').className='sl-v hi';
   document.getElementById('s3sub').textContent=name+' ✓';
-  updateCtaState();
   setTimeout(()=>openAcc(4),340);
 }
 
@@ -161,7 +158,6 @@ function pickSector(el,name){
   // filter available sections based on sector and auto-add required ones
   filterPaletteForSector(name);
   applySectorConfig(name);
-  updateCtaState();
   // auto-advance to step 2
   setTimeout(()=>openAcc(2),340);
 }
@@ -172,7 +168,6 @@ function pickSectorAltro(el){
   wrap.style.display='block';
   document.getElementById('altro-input').focus();
   resetPalette();
-  updateCtaState();
 }
 function onAltroInput(inp){
   const val=inp.value.trim();
@@ -185,10 +180,6 @@ function onAltroInput(inp){
     v.textContent='—';v.className='sl-v';
     document.getElementById('s1sub').textContent='Descrivi la tua attività';
   }
-  // non elencata esplicitamente nel Fix 2, ma è l'altro punto in cui ST.settore
-  // cambia (percorso "Altro…") — senza questa chiamata il CTA non si aggiorna
-  // scegliendo un settore libero invece di uno dei chip predefiniti.
-  updateCtaState();
 }
 
 // ── CONFIGURATION VALIDATION ──
@@ -212,68 +203,30 @@ function canOpenStep(n){
   return true;
 }
 
-// Bottone "Procedi all'acquisto": disabilitato finché settore + sezioni minime +
-// stile non sono impostati (l'Add-on NON è richiesto). Lo sparkle scatta solo
-// nell'istante in cui la configurazione diventa completa, non ad ogni re-render.
-function updateCtaState(){
-  const btn=document.getElementById('ctaCheckout');
-  if(!btn)return;
-  const userBlocks=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length;
-  const isComplete=Boolean(ST.settore)&&userBlocks>=CONFIG_MIN_BLOCKS&&Boolean(ST.stile);
-  const wasDisabled=btn.disabled;
-  btn.disabled=!isComplete;
-  if(isComplete&&wasDisabled){
-    btn.classList.add('cta-sparkle');
-    setTimeout(()=>btn.classList.remove('cta-sparkle'),900);
-  }
-}
-
-// ── STEP TABS (sostituisce l'accordion: un solo step visibile alla volta) ──
-function updateNavButtons(){
-  const back=document.getElementById('cfgNavBack');
-  const next=document.getElementById('cfgNavNext');
-  if(back) back.style.visibility=currentStep===1?'hidden':'visible';
-  if(next){
-    next.style.display=currentStep===4?'none':'inline-flex';
-    // step "Sezioni": stesso pattern di updateCtaState, Avanti resta disabilitato
-    // finché non si raggiunge il minimo di sezioni richiesto.
-    if(currentStep===2){
-      const userBlocks=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length;
-      next.disabled=userBlocks<CONFIG_MIN_BLOCKS;
-    } else {
-      next.disabled=false;
-    }
-  }
-}
-// openAcc: cambia lo step attivo SENZA validare — usata internamente da chi ha
-// già validato (pickSector/pickStyle in auto-avanzamento, validateCheckout).
-// Cambiare step non deve mai muovere lo scroll della pagina, in nessun caso —
-// nessuna chiamata a scrollIntoView/scrollTo qui dentro.
+// ── ACCORDION (with openAcc helper) ──
 function openAcc(n){
-  currentStep=n;
-  document.querySelectorAll('.cfg-step-body').forEach(b=>{
-    b.classList.toggle('active',Number(b.dataset.step)===n);
+  const body=document.getElementById('cfg-b'+n);
+  const hdr=body.previousElementSibling;
+  body.classList.add('open');
+  hdr.classList.add('open');
+  requestAnimationFrame(()=>{
+    body.scrollIntoView({behavior:'smooth',block:'center'});
   });
-  document.querySelectorAll('.cfg-tab').forEach(t=>{
-    const s=Number(t.dataset.step);
-    t.classList.toggle('active',s===n);
-    t.classList.toggle('done',s<n);
-  });
-  updateNavButtons();
-  fitPreviewToFrame();
 }
-// goToStep: stessa validazione/messaggi di canOpenStep già usati da toggleAcc,
-// richiamata dai tab cliccabili e dai pulsanti Indietro/Avanti.
-function goToStep(n){
-  if(n<1||n>4)return;
+function toggleAcc(n,hdr){
   if(n>1 && !canOpenStep(n)) return;
-  openAcc(n);
-}
-function goNext(){ goToStep(currentStep+1); }
-function goBack(){ goToStep(currentStep-1); }
-function dismissBanner(id){
-  const el=document.getElementById(id);
-  if(el) el.classList.remove('show');
+  const body=document.getElementById('cfg-b'+n);
+  const isOpen=body.classList.contains('open');
+  if(isOpen){
+    body.classList.remove('open');
+    hdr.classList.remove('open');
+  } else {
+    body.classList.add('open');
+    hdr.classList.add('open');
+    requestAnimationFrame(()=>{
+      body.scrollIntoView({behavior:'smooth',block:'center'});
+    });
+  }
 }
 
 // ── SHUFFLE CANVAS ──
@@ -307,7 +260,6 @@ function shuffleCanvas(){
     setTimeout(()=>{el.style.transition='opacity .3s,transform .3s';el.style.opacity='1';el.style.transform='scale(1)';},50);
   });
   ST.blocks=Array.from(canvas.querySelectorAll('.cb-wrap')).map(w=>w.dataset.block);
-  fitPreviewToFrame();
   showToast('🔀 Sezioni mescolate!','');
 }
 // ── BLOCK DEFINITIONS ──
@@ -326,59 +278,6 @@ const BLOCKS={
 
 const canvas=document.getElementById('canvas');
 const cvEmpty=document.getElementById('cvEmpty');
-
-// ── PREVIEW SCALE-TO-FIT ──
-// #canvas fa sia da "inner" scalabile (contiene i .cb-wrap reali) sia da nodo
-// unico riusato in mobile/desktop via CSS grid — #previewFrame è il contenitore
-// ad altezza fissa che lo racchiude. Caso peggiore noto: 10 sezioni utente + 2
-// blocchi locked (Menu, Copertina) = 12 blocchi, la palette non permette di più.
-const MIN_SCALE=0.6; // tarato empiricamente sul caso limite (10 blocchi), vedi test in browser
-let fitRaf=null;
-function fitPreviewToFrame(){
-  if(fitRaf) cancelAnimationFrame(fitRaf);
-  fitRaf=requestAnimationFrame(()=>{
-    // #previewViewport (non #previewFrame) è il riferimento corretto: è l'area
-    // SOTTO l'header "Anteprima dal vivo", quella davvero disponibile per i blocchi.
-    const frame=document.getElementById('previewViewport');
-    const inner=canvas;
-    if(!frame||!inner)return;
-
-    // reset da uno stato pulito. La larghezza NON va mai toccata: resta sempre
-    // 100% del frame (fissata via CSS statico) — allargarla per compensare lo
-    // scale, come faceva il tentativo precedente, sposta il centro del box a
-    // destra e rompe la centratura orizzontale.
-    inner.style.transform='none';
-    inner.style.marginBottom='0';
-
-    const frameHeight=frame.clientHeight;
-    const contentHeight=inner.scrollHeight;
-
-    if(contentHeight<=frameHeight){
-      frame.classList.remove('preview-scrolling');
-      return;
-    }
-
-    const neededScale=frameHeight/contentHeight;
-
-    if(neededScale>=MIN_SCALE){
-      // SOLO verticale: scale(x,y) restringe anche la larghezza, lasciando i
-      // blocchi più stretti del frame — scaleY tiene la larghezza sempre al 100%.
-      inner.style.transform=`scaleY(${neededScale})`;
-      inner.style.transformOrigin='top center';
-      // transform:scale() non riduce lo spazio riservato dal layout (che resta
-      // quello originale, non scalato) — compensa lo spazio vuoto lasciato sotto.
-      const savedSpace=contentHeight-(contentHeight*neededScale);
-      inner.style.marginBottom=`-${savedSpace}px`;
-      frame.classList.remove('preview-scrolling');
-    } else {
-      // rete di sicurezza: sotto MIN_SCALE il testo diventa illeggibile, meglio
-      // scrollare che rimpicciolire oltre
-      inner.style.transform='none';
-      inner.style.marginBottom='0';
-      frame.classList.add('preview-scrolling');
-    }
-  });
-}
 
 // Pre-populate canvas with Nav + Hero (locked)
 function initCanvas(){
@@ -419,9 +318,6 @@ function addBlockToCanvas(name){
   canvas.appendChild(wrap);
   ST.blocks.push(name);
   updateBlocksSummary(prevCount);
-  fitPreviewToFrame();
-  updateCtaState();
-  updateNavButtons();
 }
 
 function removeBlock(name,btn){
@@ -431,15 +327,13 @@ function removeBlock(name,btn){
   if(wrap){
     wrap.style.transition='opacity .2s,transform .2s';
     wrap.style.opacity='0';wrap.style.transform='scale(.96)';
-    setTimeout(()=>{wrap.remove();fitPreviewToFrame();},200);
+    setTimeout(()=>wrap.remove(),200);
   }
   ST.blocks=ST.blocks.filter(b=>b!==name);
   const chip=document.querySelector(`.drag-chip[data-block="${name}"]`);
   if(chip)chip.classList.remove('used');
   if(ST.blocks.length===0)cvEmpty.style.display='flex';
   updateBlocksSummary();
-  updateCtaState();
-  updateNavButtons();
 }
 
 function updateProBadges(){
@@ -517,27 +411,6 @@ function updatePlanSummary(prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copert
   }
 }
 
-// Banner contestuali dello step "Sezioni": leggono ST.plan DOPO che
-// updatePlanSummary l'ha già impostato, senza toccarne la logica di calcolo.
-// Confronta contro lastIsPro (non contro prevCount/count, che dopo removeBlock
-// sono già entrambi post-mutazione e non distinguerebbero la transizione).
-function updateSectionBanners(){
-  const isPro=ST.plan==='pro';
-  const upsell=document.getElementById('cfgUpsellBanner');
-  const downgrade=document.getElementById('cfgDowngradeBanner');
-  if(upsell) upsell.classList.toggle('show',isPro);
-  if(downgrade){
-    if(lastIsPro && !isPro){
-      downgrade.classList.add('show');
-      clearTimeout(downgrade._hideTimer);
-      downgrade._hideTimer=setTimeout(()=>downgrade.classList.remove('show'),6000);
-    } else if(isPro){
-      downgrade.classList.remove('show');
-    }
-  }
-  lastIsPro=isPro;
-}
-
 function updateBlocksSummary(prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length){
   const userCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copertina').length;
   const v=document.querySelector('#sl-blk .sl-v');
@@ -545,29 +418,14 @@ function updateBlocksSummary(prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Cope
   v.className='sl-v'+(userCount>0?' hi':'');
   document.getElementById('s2sub').textContent=userCount>0?`${userCount} sezioni nella canvas`:'Trascina le sezioni sulla canvas';
   updatePlanSummary(prevCount);
-  updateSectionBanners();
-}
-
-// Click su un chip: se il blocco è già in ST.blocks lo rimuove (riusando la ✕
-// già presente sul blocco nella preview, stessa identica removeBlock di sempre),
-// altrimenti lo aggiunge — rende il click un toggle invece di un'azione one-way.
-function toggleBlockFromChip(name){
-  if(ST.blocks.includes(name)){
-    const wrap=document.querySelector(`.cb-wrap[data-block="${name}"]`);
-    const removeBtn=wrap?wrap.querySelector('.cb-remove'):null;
-    if(removeBtn)removeBtn.click();
-  } else {
-    addBlockToCanvas(name);
-    const chip=document.querySelector(`.drag-chip[data-block="${name}"]`);
-    if(chip)chip.classList.add('used');
-  }
-  fitPreviewToFrame();
 }
 
 // ── PALETTE CHIPS → click or drag onto canvas ──
 document.querySelectorAll('.palette .drag-chip:not([data-locked])').forEach(chip=>{
   chip.addEventListener('click',()=>{
-    toggleBlockFromChip(chip.dataset.block);
+    if(chip.classList.contains('used'))return;
+    addBlockToCanvas(chip.dataset.block);
+    chip.classList.add('used');
   });
   chip.addEventListener('dragstart',e=>{
     e.dataTransfer.setData('block-name',chip.dataset.block);
@@ -634,7 +492,6 @@ function onCbDrop(e){
   // update ST.blocks order
   ST.blocks=Array.from(canvas.querySelectorAll('.cb-wrap')).map(w=>w.dataset.block);
   updateBlocksSummary();
-  fitPreviewToFrame();
 }
 function onCbDragEnd(){
   this.style.opacity='';
@@ -648,7 +505,7 @@ const escJs=(s)=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
 // Genera le righe .addon-r dello step 4 da ADDON_CATALOG (solo quelle con attivo===true).
 function renderAddons(){
-  const box=document.getElementById('cfgAddonList');
+  const box=document.getElementById('cfg-b4');
   if(!box)return;
   box.innerHTML='';
   ADDON_CATALOG.filter(a=>a.attivo).forEach(a=>{
@@ -932,24 +789,15 @@ const aio=new IntersectionObserver(entries=>{
 const aiEl=document.getElementById('ai-check');if(aiEl)aio.observe(aiEl);
 cleanupFns.push(() => aio.disconnect());
 
-// ── PREVIEW RESIZE ──
-const handlePreviewResize=()=>fitPreviewToFrame();
-window.addEventListener('resize',handlePreviewResize,{passive:true});
-cleanupFns.push(() => window.removeEventListener('resize',handlePreviewResize));
-
 // ── INIT ──
 renderAddons();
 initCanvas();
-openAcc(1);
 
   window.pickStyle = pickStyle;
   window.pickSector = pickSector;
   window.pickSectorAltro = pickSectorAltro;
   window.onAltroInput = onAltroInput;
-  window.goToStep = goToStep;
-  window.goNext = goNext;
-  window.goBack = goBack;
-  window.dismissBanner = dismissBanner;
+  window.toggleAcc = toggleAcc;
   window.shuffleCanvas = shuffleCanvas;
   window.removeBlock = removeBlock;
   window.toggleAddon = toggleAddon;

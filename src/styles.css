@@ -11,6 +11,7 @@
   --border:#E2DCF5;
   --muted:#8B7FA8;
   --text:#2D2540;
+  --muted-text:#A79FBD; /* testo secondario leggibile su sfondo scuro (--night), tonalità lilac-grigio */
 }
 html{scroll-behavior:smooth}
 body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
@@ -540,29 +541,133 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
    CONFIGURATOR
 ═══════════════════════════════ */
 #configurator{background:var(--card);border-top:1px solid var(--border);}
-.cfg-layout{display:grid;grid-template-columns:1fr 340px;gap:44px;align-items:start;}
 
-/* accordion steps */
-.cfg-acc-item{margin-bottom:10px;}
-.cfg-acc-hdr{
-  display:flex;align-items:center;gap:12px;padding:16px 18px;
-  border-radius:14px;cursor:pointer;
-  border:1.5px solid var(--border);background:var(--white);
-  transition:all .22s;user-select:none;
+.cfg-grid{
+  display:grid;
+  grid-template-columns:1fr 552px;
+  grid-template-areas:
+    "tabs   right"
+    "step   right";
+  column-gap:32px;row-gap:20px;
+  align-items:start;
 }
-.cfg-acc-hdr.open{border-color:var(--night);background:var(--night);}
-.cfg-n{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--muted);flex-shrink:0;transition:all .22s;}
-.cfg-acc-hdr.open .cfg-n{background:var(--yellow);border-color:var(--yellow);color:var(--night);}
-.cfg-titles{flex:1;}
-.cfg-t{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);transition:color .22s;}
-.cfg-acc-hdr.open .cfg-t{color:var(--white);}
-.cfg-s{font-size:12px;color:var(--muted);transition:color .22s;}
-.cfg-acc-hdr.open .cfg-s{color:rgba(253,252,255,.35);}
-.cfg-chev{margin-left:auto;font-size:14px;color:var(--muted);transition:transform .3s,color .22s;}
-.cfg-acc-hdr.open .cfg-chev{transform:rotate(180deg);color:var(--white);}
 
-.cfg-body{display:none;border-left:2px solid var(--border);margin-left:13px;padding:14px 0 14px 22px;}
-.cfg-body.open{display:block;}
+/* STEP TABS (sostituiscono l'accordion) */
+.cfg-tabs{grid-area:tabs;display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;}
+.cfg-tab{
+  flex:1;min-width:100px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+  text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:13px;
+  padding:11px 13px;cursor:pointer;transition:all .2s;font-family:inherit;
+}
+.cfg-tab:hover{border-color:var(--night);}
+.cfg-tab-n{
+  width:22px;height:22px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--muted);transition:all .2s;
+}
+.cfg-tab-lbl{font-family:'Syne',sans-serif;font-size:12.5px;font-weight:600;color:var(--text);}
+.cfg-tab.active{border-color:var(--night);background:var(--night);}
+.cfg-tab.active .cfg-tab-n{background:var(--yellow);border-color:var(--yellow);color:var(--night);}
+.cfg-tab.active .cfg-tab-lbl{color:var(--white);}
+.cfg-tab.done .cfg-tab-n{background:var(--mint);border-color:var(--mint);color:#1a4a35;font-size:0;}
+.cfg-tab.done .cfg-tab-n::after{content:'✓';font-size:11px;}
+.cfg-tab.done:not(.active){border-color:rgba(194,240,224,.8);}
+
+/* STEP PANEL — dimensione ESTERNA fissa, allineata alla colonna destra: non deve
+   mai variare passando da uno step corto (es. Settore) a uno lungo (es. Add-on)
+   (Fix 4). Il contenuto scrolla in .cfg-step-scroll, .cfg-nav resta ancorata sotto. */
+.cfg-step-panel{
+  grid-area:step;background:var(--white);border:1.5px solid var(--border);border-radius:22px;
+  padding:clamp(20px,3vw,30px);display:flex;flex-direction:column;
+  height:600px;
+}
+.cfg-step-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;}
+.cfg-step-body{display:none;}
+.cfg-step-body.active{display:block;animation:cfgStepIn .3s ease;}
+/* step Add-on (Fix 5): titolo/sottotitolo restano fermi, solo #cfgAddonScroll
+   scrolla — #cfg-b4 riempie tutta l'altezza di .cfg-step-scroll (già a misura
+   fissa) e ne ridistribuisce lo spazio tra head (auto) e lista (flex:1). Regola
+   scoped a #cfg-b4 via ID, non tocca display:block degli altri 3 step. */
+#cfg-b4.active{display:flex;flex-direction:column;height:100%;}
+.cfg-addon-head{flex:0 0 auto;}
+.cfg-addon-scroll{
+  flex:1 1 auto;min-height:0;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(26,21,39,.25) transparent;
+}
+.cfg-addon-scroll::-webkit-scrollbar{width:5px;}
+.cfg-addon-scroll::-webkit-scrollbar-thumb{background:rgba(26,21,39,.25);border-radius:999px;}
+.cfg-addon-scroll::-webkit-scrollbar-track{background:transparent;}
+@keyframes cfgStepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.cfg-step-h{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(21px,2.8vw,27px);margin:0 0 6px;color:var(--text);}
+.cfg-step-sub{margin:0 0 22px;color:var(--muted);font-size:14px;}
+
+.cfg-nav{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding-top:20px;border-top:1px solid var(--border);}
+.cfg-nav-back{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:var(--text);background:transparent;border:1.5px solid var(--border);border-radius:12px;padding:12px 20px;cursor:pointer;transition:border-color .2s;}
+.cfg-nav-back:hover{border-color:var(--night);}
+.cfg-nav-next{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--night);background:var(--yellow);border:none;border-radius:12px;padding:12px 24px;cursor:pointer;transition:opacity .2s;margin-left:auto;}
+.cfg-nav-next:hover{opacity:.9;}
+/* step "Sezioni": disabilitato finché non si raggiunge il minimo di sezioni
+   richiesto (Fix 3) — stesso pattern visivo di #ctaCheckout[disabled]. */
+.cfg-nav-next[disabled]{opacity:.45;cursor:not-allowed;}
+.cfg-nav-next[disabled]:hover{opacity:.45;}
+
+/* RIGHT COLUMN — anteprima + preventivo affiancati, dimensioni fisse (Fix 1).
+   Nessun ridimensionamento del contenitore stesso: l'unico "auto-resize" ammesso
+   è quello interno dei blocchi nella preview (transform:scale in fitPreviewToFrame). */
+.cfg-right-col{
+  grid-area:right;
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  gap:16px;
+  align-items:stretch;
+  height:600px;
+  width:100%;
+  max-width:552px;
+  position:sticky;
+  top:96px;
+}
+
+.preview-frame{
+  flex:1 1 312px;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-radius:20px;position:relative;
+  background:var(--white);border:1px solid var(--border);box-shadow:0 20px 60px rgba(26,21,39,.08);
+}
+.cfg-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:0 0 auto;padding:14px 14px 8px;}
+.cfg-preview-lbl{display:flex;align-items:center;gap:7px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.cfg-live-dot{width:6px;height:6px;border-radius:50%;background:#3ABF8E;box-shadow:0 0 8px rgba(58,191,142,.6);flex-shrink:0;}
+.cfg-shuffle-btn{display:flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s;}
+.cfg-shuffle-btn:hover{border-color:var(--night);color:var(--night);}
+
+/* #previewViewport è il riferimento reale per fitPreviewToFrame() (altezza disponibile
+   SOTTO l'header) — #canvas al suo interno è l'elemento scalato via transform. */
+.preview-viewport{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;}
+.preview-viewport.preview-scrolling{
+  overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(26,21,39,.25) transparent;
+}
+.preview-viewport.preview-scrolling::-webkit-scrollbar{width:5px;}
+.preview-viewport.preview-scrolling::-webkit-scrollbar-thumb{background:rgba(26,21,39,.25);border-radius:999px;}
+.preview-viewport.preview-scrolling::-webkit-scrollbar-track{background:transparent;}
+#canvas{width:100%;min-height:0;border:none;border-radius:0;padding:10px;background:transparent;}
+
+/* BANNER contestuali step "Sezioni" */
+.cfg-banner{display:none;border-radius:15px;padding:16px 18px;margin-bottom:16px;}
+.cfg-banner.show{display:block;animation:cfgStepIn .3s ease;}
+.cfg-banner-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;}
+.cfg-banner-txt{margin:0;font-size:13.5px;line-height:1.5;color:var(--text);}
+.cfg-banner-dismiss{margin-top:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:999px;padding:5px 13px;cursor:pointer;}
+.cfg-banner-upsell{background:rgba(216,204,255,.14);border:1px solid var(--lilac);}
+.cfg-banner-upsell .cfg-banner-title{color:#5a3fc7;}
+.cfg-banner-downgrade{background:rgba(194,240,224,.14);border:1px solid var(--mint);}
+.cfg-banner-downgrade .cfg-banner-title{color:#1a4a35;}
+
+.cfg-always-box{background:rgba(26,21,39,.02);border:1px dashed var(--border);border-radius:13px;padding:10px 14px;margin-bottom:16px;}
+.cfg-always-lbl{font-family:'Syne',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
 
 /* sectors */
 .sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
@@ -586,7 +691,12 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 }
 .drag-chip .dh{color:var(--muted);font-size:13px;cursor:grab;}
 .drag-chip:hover{border-color:var(--night);color:var(--night);}
-.drag-chip.used{opacity:.28;pointer-events:none;}
+/* .used resta cliccabile (niente pointer-events:none) — un secondo click rimuove
+   il blocco (Fix 3, toggleBlockFromChip): lo stile "attivo" segnala che è già
+   nella canvas ed è ancora un'azione disponibile, non un chip disabilitato. */
+.drag-chip.used{background:var(--night);border-color:var(--night);color:var(--yellow);}
+.drag-chip.used .dh{color:var(--yellow);}
+.drag-chip.used:hover{opacity:.85;}
 .drag-chip.locked{border-color:var(--lilac);color:var(--night);background:rgba(216,204,255,.15);}
 .drag-chip.locked .dh{color:var(--lilac);}
 
@@ -601,10 +711,20 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 .canvas-box.dov{border-color:var(--night);background:rgba(26,21,39,.02);}
 .cv-empty{
   position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:10px;pointer-events:none;
+  align-items:center;justify-content:center;gap:0;padding:22px;
 }
-.cv-empty-ico{font-size:32px;opacity:.18;}
-.cv-empty-txt{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--muted);text-align:center;line-height:1.6;}
+.cv-empty-shimmer{width:100%;max-width:280px;display:flex;flex-direction:column;gap:9px;margin-bottom:16px;animation:pulseSoft 1.8s ease-in-out infinite;}
+.cv-shimmer-bar{border-radius:5px;background:linear-gradient(90deg,rgba(26,21,39,.06),rgba(26,21,39,.15),rgba(26,21,39,.06));background-size:200% 100%;animation:cfgShimmer 2.2s linear infinite;}
+.cv-shimmer-title{height:12px;width:55%;}
+.cv-shimmer-hero{height:52px;}
+.cv-shimmer-row{display:flex;gap:8px;}
+.cv-shimmer-box{flex:1;height:34px;border-radius:8px;background:rgba(26,21,39,.05);}
+@keyframes cfgShimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+@keyframes pulseSoft{0%,100%{opacity:1;}50%{opacity:.72;}}
+.cv-empty-txt-main{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;text-align:center;}
+.cv-empty-txt-sub{font-size:12.5px;line-height:1.4;color:var(--muted);margin-bottom:16px;max-width:26ch;text-align:center;}
+.cv-empty-cta{display:inline-flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--night);background:var(--yellow);border:none;border-radius:10px;padding:10px 18px;cursor:pointer;transition:transform .18s;}
+.cv-empty-cta:hover{transform:translateY(-2px);}
 
 /* canvas block wrapper */
 .cb-wrap{
@@ -715,10 +835,11 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 .bpg-b:first-child{width:55%;background:var(--night);opacity:.15;}
 
 /* style picker */
-.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.style-opt{border:2px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:all .18s;}
+/* card leggermente più compatte per stare nel riquadro fisso senza scrollbar (Fix 4) */
+.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.style-opt{border:2px solid var(--border);border-radius:12px;padding:9px;cursor:pointer;transition:all .18s;}
 .style-opt:hover,.style-opt.sel{border-color:var(--night);}
-.style-pv{height:48px;border-radius:8px;margin-bottom:9px;overflow:hidden;position:relative;}
+.style-pv{height:38px;border-radius:8px;margin-bottom:6px;overflow:hidden;position:relative;}
 .s-mn .style-pv{background:#f8f8f8;border:1px solid #eee;}
 .s-bd .style-pv{background:var(--night);}
 .s-el .style-pv{background:linear-gradient(135deg,#1a1a2e,#2d1b4e);}
@@ -762,18 +883,41 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 }
 
 /* sidebar */
-.cfg-sidebar{position:sticky;top:96px;background:var(--night);border-radius:20px;padding:26px;max-height:calc(100vh - 120px);overflow:auto;}
-.sb-lbl{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(253,252,255,.25);margin-bottom:18px;display:block;}
+.cfg-sidebar{flex:0 0 224px;min-width:0;background:var(--night);border-radius:20px;padding:26px;overflow-y:auto;}
+/* testo secondario/etichette leggibili su sfondo scuro (Fix 3) — prima rgba(253,252,255,.18–.3),
+   troppo poco contrasto su #1A1527. */
+.sb-lbl{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted-text);margin-bottom:18px;display:block;}
 .sb-price{font-family:'DM Serif Display',serif;font-size:54px;letter-spacing:-2px;color:var(--yellow);line-height:1;}
-.sb-sub{font-size:12px;color:rgba(253,252,255,.25);margin-top:3px;margin-bottom:22px;}
+.sb-sub{font-size:12px;color:var(--muted-text);margin-top:3px;margin-bottom:22px;}
 .sb-lines{border-top:1px solid rgba(255,255,255,.07);padding-top:14px;margin-bottom:22px;}
 .sb-line{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;}
-.sl-k{color:rgba(253,252,255,.3);}
+.sl-k{color:var(--muted-text);}
 .sl-v{color:var(--white);font-weight:500;}
 .sl-v.hi{color:var(--yellow);}
 .sb-btn{width:100%;padding:15px;border-radius:100px;border:none;background:var(--yellow);color:var(--night);font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .18s,transform .18s;}
 .sb-btn:hover{opacity:.9;transform:translateY(-1px);}
-.sb-note{text-align:center;font-size:11px;color:rgba(253,252,255,.18);margin-top:10px;}
+.sb-note{text-align:center;font-size:11px;color:var(--muted-text);margin-top:10px;}
+
+/* CTA checkout — disabilitato finché la configurazione non è completa (Fix 2).
+   font-size/padding ridotti rispetto a .sb-btn: nella colonna fissa a 224px
+   (Fix 1) "Procedi all'acquisto" in Syne 800 al corpo/padding standard non ci
+   sta (misurato: ~203px di contenuto necessari contro ~172px disponibili). */
+#ctaCheckout{white-space:nowrap;font-size:10px;padding:14px 4px;letter-spacing:-.3px;}
+#ctaCheckout[disabled]{opacity:.45;cursor:not-allowed;filter:grayscale(0.25);}
+#ctaCheckout[disabled]:hover{transform:none;}
+#ctaCheckout.cta-sparkle{position:relative;overflow:visible;}
+#ctaCheckout.cta-sparkle::before,
+#ctaCheckout.cta-sparkle::after{
+  content:'✦';position:absolute;color:var(--yellow);font-size:14px;
+  animation:sparkleOut .8s ease-out forwards;pointer-events:none;
+}
+#ctaCheckout.cta-sparkle::before{top:-6px;left:10%;animation-delay:0s;}
+#ctaCheckout.cta-sparkle::after{bottom:-6px;right:14%;animation-delay:.15s;}
+@keyframes sparkleOut{
+  0%{opacity:0;transform:scale(.4) translateY(0);}
+  40%{opacity:1;transform:scale(1) translateY(-4px);}
+  100%{opacity:0;transform:scale(.6) translateY(-14px);}
+}
 
 .section-progress{
   position:relative;
@@ -965,8 +1109,18 @@ footer a:hover{color:rgba(253,252,255,.55);}
 @media(max-width:1024px){
   #hero{grid-template-columns:1fr;padding:120px 24px 80px;}
   .hero-right{display:none;}
-  .cfg-layout{grid-template-columns:1fr;}
-  .cfg-sidebar{position:relative;top:auto;}
+  .cfg-grid{display:flex;flex-direction:column;gap:20px;}
+  /* su mobile la colonna destra torna impilata (preview sopra, preventivo sotto) e non è più sticky */
+  .cfg-right-col{
+    flex-direction:column;height:auto;max-width:100%;
+    position:relative;top:auto;
+  }
+  .preview-frame{height:320px;}
+  .cfg-sidebar{flex:0 0 auto;}
+  /* su mobile non c'è nulla di sticky accanto: il panel torna ad altezza naturale
+     e scrolla con la pagina, invece di avere un proprio scroll interno */
+  .cfg-step-panel{height:auto;}
+  .cfg-step-scroll{overflow-y:visible;}
 }
 @media(max-width:900px){
   nav .nav-links,.nav-pill{display:none;}
