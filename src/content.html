@@ -1,16 +1,36 @@
 <!-- toast -->
 <div id="toast"><span class="toast-ico">🔒</span><span id="toast-msg">Questa sezione ha una posizione fissa</span></div>
 
+<!-- Modale passaggio a piano Pro (Fix 3) — unica implementazione rimasta:
+     position:fixed, overlay + card centrata, fuori dal flusso del documento,
+     non causa mai reflow/scrollbar. Tono positivo: l'utente ha guadagnato
+     qualcosa. Chiudibile da bottone, click sull'overlay, o tasto Esc. -->
+<div id="proModal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="proModalTitle" aria-describedby="proModalText">
+  <div class="modal-backdrop" onclick="closeProModal()"></div>
+  <div class="modal-card pro-modal-card">
+    <div class="pro-modal-badge">⚡ PRO</div>
+    <h2 id="proModalTitle">Sei passato al piano Pro!</h2>
+    <p id="proModalText">Hai sbloccato sezioni illimitate, SEO Base incluso e 2 revisioni incluse — già aggiunti al tuo preventivo, nessun'altra azione richiesta.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" id="proModalCloseBtn" onclick="closeProModal()">Continua a configurare</button>
+    </div>
+  </div>
+</div>
+
 <!-- confirmation modal -->
 <div id="confirmModal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalText">
   <div class="modal-backdrop" onclick="closeModal()"></div>
   <div class="modal-card">
     <h2 id="confirmModalTitle">Sei sicuro?</h2>
-    <p id="confirmModalText">Hai completato la configurazione ma non hai selezionato alcun add-on. Gli add-on come SEO Base, il dominio personalizzato con email professionale e i contenuti professionali possono aumentare la conversione e aiutarti a ottenere più contatti.</p>
-    <p class="modal-note">Puoi procedere comunque oppure tornare indietro a scegliere gli add-on consigliati.</p>
+    <p id="confirmModalText">Hai completato la configurazione ma non hai selezionato alcun extra. Gli extra come SEO Base, il dominio personalizzato con email professionale e i contenuti professionali possono aumentare la conversione e aiutarti a ottenere più contatti.</p>
+    <p class="modal-note">Puoi procedere comunque oppure tornare indietro a scegliere gli extra consigliati.</p>
     <div class="modal-actions">
-      <button class="modal-btn modal-btn-secondary" onclick="closeModalAndOpenAddons()">Torna agli add-on</button>
-      <button class="modal-btn modal-btn-primary" onclick="confirmCheckout()">Procedi senza add-on</button>
+      <!-- Fix 7: gerarchia invertita — "Torna agli Extra" è l'azione consigliata
+           (primaria), "Procedi senza" resta un'uscita legittima e immediata
+           (secondaria, non depotenziata). Stessi onclick di prima, solo le
+           classi CSS sono scambiate. -->
+      <button class="modal-btn modal-btn-primary" onclick="closeModalAndOpenAddons()">Torna agli Extra</button>
+      <button class="modal-btn modal-btn-secondary" onclick="confirmCheckout()">Procedi senza</button>
     </div>
   </div>
 </div>
@@ -76,7 +96,7 @@
     <span class="s-tag reveal">Il processo</span>
     <h2 class="s-h2 reveal">Quattro passi.<br><em>Un sito che funziona.</em></h2>
     <div class="how-grid reveal">
-      <div class="how-card"><div class="how-num">1</div><span class="how-ico">🎛️</span><h3>Configuri online</h3><p>Scegli settore, blocchi, stile e add-on. Prezzo in tempo reale. Zero chiamate.</p></div>
+      <div class="how-card"><div class="how-num">1</div><span class="how-ico">🎛️</span><h3>Configuri online</h3><p>Scegli settore, blocchi, stile ed extra. Prezzo in tempo reale. Zero chiamate.</p></div>
       <div class="how-card"><div class="how-num">2</div><span class="how-ico">📝</span><h3>Compili il brief</h3><p>10 domande guidate. In 5 minuti abbiamo tutto il necessario per iniziare.</p></div>
       <div class="how-card"><div class="how-num">3</div><span class="how-ico">⚡</span><h3>Sviluppiamo</h3><p>Il sito prende forma in poche ore grazie all'intelligenza artificiale. Un esperto controlla tutto prima di consegnartelo.</p></div>
       <div class="how-card"><div class="how-num">4</div><span class="how-ico">🚀</span><h3>Vai live</h3><p>Link di preview, approvi, il sito va online. Il tuo business è attivo.</p></div>
@@ -127,7 +147,7 @@
           <span class="cfg-tab-n">3</span><span class="cfg-tab-lbl">Stile</span>
         </button>
         <button type="button" class="cfg-tab" data-step="4" onclick="goToStep(4)">
-          <span class="cfg-tab-n">4</span><span class="cfg-tab-lbl">Add-on</span>
+          <span class="cfg-tab-n">4</span><span class="cfg-tab-lbl">Extra</span>
         </button>
       </div>
 
@@ -152,8 +172,10 @@
                 </div>
                 <div class="cv-empty-txt-main">La tua anteprima nasce qui</div>
                 <div class="cv-empty-txt-sub">Scegli il settore e guarda il tuo sito prendere forma in tempo reale.</div>
-                <button type="button" class="cv-empty-cta" onclick="goToStep(1)">Scegli il settore →</button>
               </div>
+              <!-- Fix 5: linea di inserimento mostrata durante il drag&drop, spostata
+                   via JS (onCbDragOver) sul bordo esatto dove il blocco atterrerà. -->
+              <div class="cb-drop-indicator" id="cbDropIndicator"></div>
             </div>
           </div>
         </div>
@@ -162,14 +184,15 @@
         <div class="cfg-sidebar" id="cfgSidebar">
           <span class="sb-lbl">Il tuo preventivo</span>
           <div class="sb-price" id="totalPrice">€199</div>
-          <div class="sb-sub">una tantum · IVA esclusa</div>
+          <div class="sb-sub">una tantum</div>
           <div class="sb-lines">
+            <div class="sb-line" id="sl-delivery"><span class="sl-k">Consegna</span><span class="sl-v" id="slDeliveryVal">—</span></div>
             <div class="sb-line" id="sl-plan"><span class="sl-k">Piano Base</span><span class="sl-v">€199</span></div>
             <div class="sb-pro-note" id="sbProNote">✓ Sezioni illimitate incluse</div>
             <div class="sb-line" id="sl-set"><span class="sl-k">Settore</span><span class="sl-v">—</span></div>
             <div class="sb-line" id="sl-blk"><span class="sl-k">Sezioni</span><span class="sl-v">0</span></div>
             <div class="sb-line" id="sl-sty"><span class="sl-k">Stile</span><span class="sl-v">—</span></div>
-            <div class="sb-line" id="sl-add"><span class="sl-k">Add-on</span><span class="sl-v">—</span></div>
+            <div class="sb-line" id="sl-add"><span class="sl-k">Extra</span><span class="sl-v">—</span></div>
           </div>
           <button class="sb-btn" id="ctaCheckout" disabled onclick="goCheckout()">Procedi all'acquisto</button>
           <div class="sb-note">🔒 Pagamento sicuro · Supporto rapido incluso</div>
@@ -211,16 +234,11 @@
             <div class="cfg-always-lbl">Sempre inclusi — la copertina e il menu per navigare tra le sezioni</div>
           </div>
 
-          <div id="cfgUpsellBanner" class="cfg-banner cfg-banner-upsell">
-            <div class="cfg-banner-title">Sei passato a Pro</div>
-            <p class="cfg-banner-txt">Con più di 4 sezioni serve il pacchetto Pro. In più ricevi: sezioni illimitate, SEO Base e 2 revisioni incluse.</p>
-            <button type="button" class="cfg-banner-dismiss" onclick="dismissBanner('cfgUpsellBanner')">Ho capito</button>
-          </div>
-          <div id="cfgDowngradeBanner" class="cfg-banner cfg-banner-downgrade">
-            <div class="cfg-banner-title">Sei tornato al piano Base</div>
-            <p class="cfg-banner-txt">Aggiungi di nuovo sezioni in qualsiasi momento per sbloccare il pacchetto Pro.</p>
-            <button type="button" class="cfg-banner-dismiss" onclick="dismissBanner('cfgDowngradeBanner')">Ok, ho capito</button>
-          </div>
+          <!-- Fix 3: gli avvisi di passaggio Base<->Pro non sono più banner nel
+               layout (causavano parte dell'overflow durante l'animazione) — il
+               passaggio a Pro usa la modale #proModal (fixed), il ritorno a Base
+               il toast già esistente. Vedi updateSectionBanners() in
+               legacyBehavior.js. -->
 
           <div class="dnd-area">
             <div class="dnd-lbl">Sezioni disponibili — trascina o clicca per aggiungere</div>

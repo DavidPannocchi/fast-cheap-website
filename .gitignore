@@ -1,5 +1,7 @@
 node_modules/
+.wrangler/
 dist/
 vite-dev*.log
 .env
+.env.*
 .dev.vars

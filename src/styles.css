@@ -12,6 +12,7 @@
   --muted:#8B7FA8;
   --text:#2D2540;
   --muted-text:#A79FBD; /* testo secondario leggibile su sfondo scuro (--night), tonalità lilac-grigio */
+  --progress-track:rgba(216,204,255,.22); /* Fix 4: livello intermedio — percepibile a 0%, ma chiaramente più leggero della barra riempita (var(--yellow)->var(--lilac)) */
 }
 html{scroll-behavior:smooth}
 body{background:var(--white);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
@@ -542,26 +543,34 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 ═══════════════════════════════ */
 #configurator{background:var(--card);border-top:1px solid var(--border);}
 
+/* Fix 1: unica variabile per TUTTI gli spazi orizzontali tra i blocchi
+   principali della riga del configuratore — prima il gap tra colonna
+   sinistra/destra (32px) era esattamente il doppio del gap interno alla
+   colonna destra tra anteprima e preventivo (16px), da qui la distanza
+   "doppia" percepita. Ora entrambi usano lo stesso valore. */
+:root{--cfg-gap:24px;}
+
 .cfg-grid{
   display:grid;
   grid-template-columns:1fr 552px;
   grid-template-areas:
     "tabs   right"
     "step   right";
-  column-gap:32px;row-gap:20px;
+  column-gap:var(--cfg-gap);row-gap:24px;
   align-items:start;
 }
 
-/* STEP TABS (sostituiscono l'accordion) */
+/* STEP TABS — pillole compatte, icona+etichetta su una riga (Fix 2) */
 .cfg-tabs{grid-area:tabs;display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;}
 .cfg-tab{
-  flex:1;min-width:100px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;
-  text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:13px;
-  padding:11px 13px;cursor:pointer;transition:all .2s;font-family:inherit;
+  flex:1;min-width:100px;display:flex;flex-direction:row;align-items:center;gap:8px;
+  text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:999px;
+  padding:8px 14px;cursor:pointer;transition:all .2s;font-family:inherit;
 }
 .cfg-tab:hover{border-color:var(--night);}
 .cfg-tab-n{
-  width:22px;height:22px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);
+  flex-shrink:0;
+  width:20px;height:20px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);
   display:flex;align-items:center;justify-content:center;
   font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--muted);transition:all .2s;
 }
@@ -576,12 +585,30 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 /* STEP PANEL — dimensione ESTERNA fissa, allineata alla colonna destra: non deve
    mai variare passando da uno step corto (es. Settore) a uno lungo (es. Add-on)
    (Fix 4). Il contenuto scrolla in .cfg-step-scroll, .cfg-nav resta ancorata sotto. */
+/* Fix 2 — diagnosi: .cfg-right-col (position:sticky) crea un proprio stacking
+   context ed è quindi SEMPRE nel livello "positioned" dell'ordine di stacking
+   CSS, che dipinge sopra gli elementi statici a prescindere dall'ordine nel
+   DOM. .cfg-step-panel era position:static (nessun context proprio): quando
+   un suo discendente crea a sua volta un context isolato (es. l'animazione
+   cfgStepIn su .cfg-step-body.active, che usa opacity+transform — entrambi
+   generano stacking context), quel sotto-albero — barra di progresso inclusa
+   — restava comunque nel livello "statico", sotto alla colonna destra.
+   Scelta tra le tre opzioni proposte: alzo lo z-index dell'antenato
+   (.cfg-step-panel) invece di spostare la barra fuori dal contenitore (romperebbe
+   il layout a due colonne, non toccabile) o rimuovere la proprietà che crea il
+   contesto (l'animazione d'ingresso serve, punto 5 la riusa per lo step Stile). */
 .cfg-step-panel{
   grid-area:step;background:var(--white);border:1.5px solid var(--border);border-radius:22px;
   padding:clamp(20px,3vw,30px);display:flex;flex-direction:column;
   height:600px;
+  position:relative;z-index:1;
 }
-.cfg-step-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;}
+/* overflow-x:hidden esplicito (Fix 3a): senza, il browser forza overflow-x
+   ad "auto" quando solo overflow-y è impostato (regola CSS overflow computed-
+   value) — qualunque micro-overflow orizzontale, anche solo durante
+   l'animazione "sparkle" della progress bar (scale(1.02)), faceva comparire
+   una scrollbar orizzontale indesiderata. */
+.cfg-step-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;}
 .cfg-step-body{display:none;}
 .cfg-step-body.active{display:block;animation:cfgStepIn .3s ease;}
 /* step Add-on (Fix 5): titolo/sottotitolo restano fermi, solo #cfgAddonScroll
@@ -591,17 +618,18 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 #cfg-b4.active{display:flex;flex-direction:column;height:100%;}
 .cfg-addon-head{flex:0 0 auto;}
 .cfg-addon-scroll{
-  flex:1 1 auto;min-height:0;overflow-y:auto;
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   scrollbar-width:thin;scrollbar-color:rgba(26,21,39,.25) transparent;
 }
 .cfg-addon-scroll::-webkit-scrollbar{width:5px;}
 .cfg-addon-scroll::-webkit-scrollbar-thumb{background:rgba(26,21,39,.25);border-radius:999px;}
 .cfg-addon-scroll::-webkit-scrollbar-track{background:transparent;}
 @keyframes cfgStepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-.cfg-step-h{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(21px,2.8vw,27px);margin:0 0 6px;color:var(--text);}
-.cfg-step-sub{margin:0 0 22px;color:var(--muted);font-size:14px;}
+/* Fix 1: ritmo verticale su scala di 4/8px invece di valori disomogenei */
+.cfg-step-h{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(21px,2.8vw,27px);margin:0 0 8px;color:var(--text);}
+.cfg-step-sub{margin:0 0 24px;color:var(--muted);font-size:14px;}
 
-.cfg-nav{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding-top:20px;border-top:1px solid var(--border);}
+.cfg-nav{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
 .cfg-nav-back{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:var(--text);background:transparent;border:1.5px solid var(--border);border-radius:12px;padding:12px 20px;cursor:pointer;transition:border-color .2s;}
 .cfg-nav-back:hover{border-color:var(--night);}
 .cfg-nav-next{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--night);background:var(--yellow);border:none;border-radius:12px;padding:12px 24px;cursor:pointer;transition:opacity .2s;margin-left:auto;}
@@ -619,7 +647,7 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
   display:flex;
   flex-direction:row;
   flex-wrap:nowrap;
-  gap:16px;
+  gap:var(--cfg-gap);
   align-items:stretch;
   height:600px;
   width:100%;
@@ -655,16 +683,19 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 .preview-viewport.preview-scrolling::-webkit-scrollbar-track{background:transparent;}
 #canvas{width:100%;min-height:0;border:none;border-radius:0;padding:10px;background:transparent;}
 
-/* BANNER contestuali step "Sezioni" */
-.cfg-banner{display:none;border-radius:15px;padding:16px 18px;margin-bottom:16px;}
-.cfg-banner.show{display:block;animation:cfgStepIn .3s ease;}
-.cfg-banner-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;}
-.cfg-banner-txt{margin:0;font-size:13.5px;line-height:1.5;color:var(--text);}
-.cfg-banner-dismiss{margin-top:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:999px;padding:5px 13px;cursor:pointer;}
-.cfg-banner-upsell{background:rgba(216,204,255,.14);border:1px solid var(--lilac);}
-.cfg-banner-upsell .cfg-banner-title{color:#5a3fc7;}
-.cfg-banner-downgrade{background:rgba(194,240,224,.14);border:1px solid var(--mint);}
-.cfg-banner-downgrade .cfg-banner-title{color:#1a4a35;}
+/* Modale passaggio a piano Pro (Fix 3) — riusa .modal/.modal-backdrop/
+   .modal-card/.modal-btn* già definite per #confirmModal (position:fixed,
+   overlay+card centrata, fuori dal flusso: mai reflow/scrollbar). Qui solo le
+   piccole differenze di tono (badge verde "PRO", bottone unico). */
+/* #proModal .pro-modal-card (non solo .pro-modal-card): .modal-card ha già un
+   border-color nel suo shorthand `border`, definito più avanti nel foglio di
+   stile — a parità di specificità vincerebbe quello per ordine di sorgente. */
+#proModal .pro-modal-card{border-color:rgba(143,255,186,.5);}
+.pro-modal-badge{
+  display:inline-flex;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;
+  background:linear-gradient(135deg,#8fffba,#45d8a1);color:#0f4733;
+  padding:6px 12px;border-radius:999px;margin-bottom:14px;
+}
 
 .cfg-always-box{background:rgba(26,21,39,.02);border:1px dashed var(--border);border-radius:13px;padding:10px 14px;margin-bottom:16px;}
 .cfg-always-lbl{font-family:'Syne',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
@@ -678,7 +709,7 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 .sec-chip:hover .sec-nm,.sec-chip.sel .sec-nm{color:var(--yellow);}
 
 /* ── DRAG & DROP ── */
-.dnd-area{display:flex;flex-direction:column;gap:14px;}
+.dnd-area{display:flex;flex-direction:column;gap:16px;}
 .dnd-lbl{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
 
 .palette{display:flex;flex-wrap:wrap;gap:7px;}
@@ -722,9 +753,7 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 @keyframes cfgShimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes pulseSoft{0%,100%{opacity:1;}50%{opacity:.72;}}
 .cv-empty-txt-main{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;text-align:center;}
-.cv-empty-txt-sub{font-size:12.5px;line-height:1.4;color:var(--muted);margin-bottom:16px;max-width:26ch;text-align:center;}
-.cv-empty-cta{display:inline-flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--night);background:var(--yellow);border:none;border-radius:10px;padding:10px 18px;cursor:pointer;transition:transform .18s;}
-.cv-empty-cta:hover{transform:translateY(-2px);}
+.cv-empty-txt-sub{font-size:12.5px;line-height:1.4;color:var(--muted);max-width:26ch;text-align:center;}
 
 /* canvas block wrapper */
 .cb-wrap{
@@ -734,8 +763,23 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
   overflow:hidden;
 }
 .cb-wrap:hover{border-color:rgba(26,21,39,.3);}
-.cb-wrap.dragging-over-top{border-top:3px solid var(--night);}
-.cb-wrap.dragging-over-bot{border-bottom:3px solid var(--night);}
+
+/* Linea di inserimento drag&drop (Fix 5) — sostituisce il bordo top/bottom sul
+   blocco sorvolato: più chiara su dove atterrerà la card, spostata via JS
+   (onCbDragOver/showDropIndicator) sul bordo esatto tra i due blocchi. */
+.cb-drop-indicator{
+  position:absolute;left:10px;right:10px;height:3px;
+  background:var(--night);border-radius:2px;
+  opacity:0;pointer-events:none;z-index:5;
+  transition:top .12s ease,opacity .12s ease;
+}
+.cb-drop-indicator::before,.cb-drop-indicator::after{
+  content:'';position:absolute;top:50%;width:7px;height:7px;border-radius:50%;
+  background:var(--night);transform:translateY(-50%);
+}
+.cb-drop-indicator::before{left:-3px;}
+.cb-drop-indicator::after{right:-3px;}
+.cb-drop-indicator.show{opacity:1;}
 
 .cb-toolbar{
   display:flex;align-items:center;gap:6px;
@@ -834,6 +878,131 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 .bpg-b{height:6px;border-radius:3px;background:var(--border);}
 .bpg-b:first-child{width:55%;background:var(--night);opacity:.15;}
 
+/* Fix 5 — lo stile scelto nello step 3 deve cambiare le sezioni in anteprima
+   in modo NETTO, riconoscibile a colpo d'occhio, riprendendo lo stesso
+   linguaggio visivo delle card di selezione. Agisce su più leve insieme:
+   border-radius, forma dei bottoni (pill/squadrato), spessore/colore bordi,
+   peso e tracking del testo, densità (gap tra blocchi), accenti colore, e
+   tinta di sfondo delle card. "Orari e mappa" è ESPLICITAMENTE esclusa da
+   ogni singola regola (:not([data-block="Orari e mappa"])) e non cambia mai.
+   NOTA: niente box-shadow come leva — .cb-wrap ha overflow:hidden (necessario
+   per ritagliare i cerchi decorativi tipo .bp-hero::after ai bordi arrotondati)
+   che taglierebbe qualunque ombra prima che sia visibile; la tinta di sfondo
+   della card (--preview-card-bg) copre lo stesso ruolo espressivo. */
+#canvas{
+  --preview-accent:var(--yellow);
+  --preview-accent-dark:var(--night);
+  --preview-radius:10px;
+  --preview-btn-radius:100px;
+  --preview-border-w:1.5px;
+  --preview-border-color:var(--border);
+  --preview-card-bg:var(--white);
+  --preview-weight:700;
+  --preview-tracking:.8px;
+  --preview-toolbar-bg:rgba(26,21,39,.03);
+  gap:5px;
+}
+/* MINIMAL & PULITO — squadrato, sobrio, bordi sottili, nessun fronzolo */
+#canvas[data-style="mn"]{
+  --preview-accent:#222;--preview-accent-dark:#222;
+  --preview-radius:3px;--preview-btn-radius:4px;
+  --preview-border-w:1px;--preview-border-color:#e2e2e2;
+  --preview-card-bg:#fcfcfc;
+  --preview-weight:600;--preview-tracking:.3px;
+  --preview-toolbar-bg:transparent;
+  gap:3px;
+}
+/* DECISO & BOLD — assertivo, bordi spessi e scuri, pill decisi, alto contrasto */
+#canvas[data-style="bd"]{
+  --preview-accent:var(--yellow);--preview-accent-dark:var(--night);
+  --preview-radius:14px;--preview-btn-radius:100px;
+  --preview-border-w:2.5px;--preview-border-color:var(--night);
+  --preview-card-bg:var(--white);
+  --preview-weight:800;--preview-tracking:1.6px;
+  --preview-toolbar-bg:rgba(26,21,39,.07);
+  gap:7px;
+}
+/* ELEGANTE & RAFFINATO — spigoli vivi, filo oro sottile, tracking ampio */
+#canvas[data-style="el"]{
+  --preview-accent:#D4AF37;--preview-accent-dark:#2d1b4e;
+  --preview-radius:0px;--preview-btn-radius:2px;
+  --preview-border-w:1px;--preview-border-color:#D4AF37;
+  --preview-card-bg:#fbfaf7;
+  --preview-weight:600;--preview-tracking:2.2px;
+  --preview-toolbar-bg:rgba(212,175,55,.07);
+  gap:6px;
+}
+/* FRESCO & COLORATO — molto arrotondato, pill ovunque, ariosto, niente bordi */
+#canvas[data-style="fr"]{
+  --preview-accent:var(--pink);--preview-accent-dark:#8a4fae;
+  --preview-radius:22px;--preview-btn-radius:100px;
+  --preview-border-w:0px;--preview-border-color:transparent;
+  --preview-card-bg:#fff9fb;
+  --preview-weight:800;--preview-tracking:.2px;
+  --preview-toolbar-bg:rgba(247,200,216,.14);
+  gap:10px;
+}
+/* CALDO & ACCOGLIENTE — arrotondato morbido, terracotta, niente bordi */
+#canvas[data-style="warm"]{
+  --preview-accent:#BF360C;--preview-accent-dark:#7a3010;
+  --preview-radius:16px;--preview-btn-radius:100px;
+  --preview-border-w:0px;--preview-border-color:transparent;
+  --preview-card-bg:#fffaf5;
+  --preview-weight:700;--preview-tracking:.4px;
+  --preview-toolbar-bg:rgba(191,54,12,.07);
+  gap:8px;
+}
+/* PENSACI TU! — profilo bilanciato, leggermente lilla */
+#canvas[data-style="auto"]{
+  --preview-accent:var(--lilac);--preview-accent-dark:#4a3f7a;
+  --preview-radius:10px;--preview-btn-radius:100px;
+  --preview-border-w:1.5px;--preview-border-color:var(--lilac);
+  --preview-card-bg:#fbfaff;
+  --preview-weight:700;--preview-tracking:.8px;
+  --preview-toolbar-bg:rgba(216,204,255,.1);
+  gap:6px;
+}
+
+#canvas .cb-wrap:not([data-block="Orari e mappa"]){
+  border-radius:var(--preview-radius);
+  border-width:var(--preview-border-w);
+  border-color:var(--preview-border-color);
+  background:var(--preview-card-bg);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .cb-toolbar{
+  background:var(--preview-toolbar-bg);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .cb-name{
+  font-weight:var(--preview-weight);
+  letter-spacing:var(--preview-tracking);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bp-nav-btn,
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bpc-btn{
+  border-radius:var(--preview-btn-radius);
+  background:var(--preview-accent);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bph-h{
+  background:var(--preview-accent);
+  border-radius:calc(var(--preview-radius) / 3 + 1px);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bph-b{
+  background:var(--preview-accent);
+  border-radius:var(--preview-btn-radius);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bpt-stars{
+  color:var(--preview-accent);
+}
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bppr-i:nth-child(2){
+  background:var(--preview-accent-dark);
+}
+/* .bps-ico ha colore inline nel template di BLOCKS (oggetto protetto, non
+   modificabile) — !important è l'unico modo per farlo seguire lo stile senza
+   toccare BLOCKS. */
+#canvas .cb-wrap:not([data-block="Orari e mappa"]) .bps-ico{
+  background:var(--preview-accent) !important;
+  border-radius:var(--preview-btn-radius);
+}
+
 /* style picker */
 /* card leggermente più compatte per stare nel riquadro fisso senza scrollbar (Fix 4) */
 .style-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
@@ -883,7 +1052,7 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 }
 
 /* sidebar */
-.cfg-sidebar{flex:0 0 224px;min-width:0;background:var(--night);border-radius:20px;padding:26px;overflow-y:auto;}
+.cfg-sidebar{flex:0 0 224px;min-width:0;background:var(--night);border-radius:20px;padding:26px;overflow-y:auto;overflow-x:hidden;}
 /* testo secondario/etichette leggibili su sfondo scuro (Fix 3) — prima rgba(253,252,255,.18–.3),
    troppo poco contrasto su #1A1527. */
 .sb-lbl{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted-text);margin-bottom:18px;display:block;}
@@ -924,8 +1093,9 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
   background:rgba(245,240,168,.08);
   border:1px solid rgba(226,220,245,.7);
   border-radius:18px;
-  padding:14px 16px 12px;
-  margin-bottom:18px;
+  padding:16px;
+  /* margin-bottom rimosso (Fix 1): la spaziatura la dà già il gap di .dnd-area,
+     averla anche qui duplicava la distanza dal contenuto successivo */
   overflow:hidden;
 }
 .section-progress-head{
@@ -942,7 +1112,10 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
 .section-progress-plan::before{content:'⚡';font-size:12px;}
 .section-progress-track{
   position:relative;height:12px;
-  background:rgba(255,255,255,.15);
+  /* Fix 4: var(--border) solido era troppo scuro/presente — ora un livello
+     intermedio (var(--progress-track)), percepibile a 0% ma nettamente più
+     leggero della barra riempita. */
+  background:var(--progress-track);
   border-radius:999px;
   overflow:hidden;
 }
@@ -964,7 +1137,7 @@ h2.s-h2 em{font-style:italic;color:var(--muted);}
   position:absolute;top:0;left:100%;height:100%;width:100%;
   background:rgba(255,255,255,.2);backdrop-filter:blur(2px);
 }
-.section-progress-hint{margin-top:10px;font-size:12px;color:var(--muted);}
+.section-progress-hint{margin-top:8px;font-size:12px;color:var(--muted);}
 .section-progress.warn{border-color:#F3C06C;}
 .section-progress.pro{border-color:#8fffba;}
 .section-progress.sparkle{

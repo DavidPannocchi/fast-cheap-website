@@ -39,15 +39,17 @@ let lastIsPro=false;
 
 // ── ADDON CATALOG ──
 // attivo:false nasconde l'addon dal configuratore senza rimuoverlo dal catalogo.
+// Ordine (Fix 7): dal più al meno probabile da acquistare — cambia l'ordine
+// qui, non nel markup, così resta coerente ovunque venga renderizzato.
 const ADDON_CATALOG = [
   { id: 'seo_base', nome: 'SEO Base', prezzo: 49, attivo: true, extraFlag: null, sub: 'Meta tag, sitemap, Google' },
-  { id: 'dominio_email', nome: 'Dominio personalizzato + email professionale', prezzo: 39, attivo: true, extraFlag: null, sub: 'Registrazione dominio, DNS e casella email' },
-  { id: 'logo', nome: 'Logo Design', prezzo: 59, attivo: true, extraFlag: 'extra_logo', sub: 'Logo su misura per il tuo brand' },
   { id: 'contenuti', nome: 'Contenuti professionali (testi e immagini)', prezzo: 99, attivo: true, extraFlag: 'extra_contenuti', sub: 'Testi e immagini preparati da noi' },
+  { id: 'consegna_24h', nome: 'Consegna in 24 ore', prezzo: 69, attivo: true, extraFlag: null, sub: 'Il tuo sito online in un giorno' },
+  { id: 'logo', nome: 'Logo Design', prezzo: 59, attivo: true, extraFlag: 'extra_logo', sub: 'Logo su misura per il tuo brand' },
+  { id: 'dominio_email', nome: 'Dominio personalizzato + email professionale', prezzo: 39, attivo: true, extraFlag: null, sub: 'Registrazione dominio, DNS e casella email' },
   { id: 'menu_qr', nome: 'Menu digitale + QR', prezzo: 39, attivo: true, extraFlag: 'extra_qr', sub: 'Menu online con QR code da stampare' },
   { id: 'multilingua', nome: 'Sito multilingua ita/eng', prezzo: 69, attivo: true, extraFlag: 'extra_multilingua', sub: 'Versione italiana e inglese' },
   { id: 'sezione_extra', nome: 'Sezione aggiuntiva', prezzo: 39, attivo: true, extraFlag: null, sub: 'Una sezione in più sul tuo sito' },
-  { id: 'consegna_24h', nome: 'Consegna in 24 ore', prezzo: 69, attivo: true, extraFlag: null, sub: 'Il tuo sito online in un giorno' },
   { id: 'revisione_extra', nome: 'Revisione extra', prezzo: 49, attivo: true, extraFlag: null, sub: 'Fino a 3 round aggiuntivi' },
   { id: 'assistenza_annuale', nome: 'Assistenza annuale', prezzo: 119, attivo: true, extraFlag: null, sub: 'Aggiornamenti e supporto per 12 mesi' },
 ];
@@ -81,14 +83,28 @@ const MAX_REVISION_ROUNDS=3;
 const FIXED_SECTION_MSG='Questa sezione ha una posizione fissa';
 
 // ── STYLE ──
+// Fix 6: mappa nome stile (quello salvato in ST.stile) -> slug corto usato
+// come attributo data-style su #canvas, per applicare l'accento/border-radius
+// del CSS corrispondente ai blocchi nell'anteprima live.
+const STYLE_SLUGS={
+  'Minimal & Pulito':'mn',
+  'Deciso & Bold':'bd',
+  'Elegante & Raffinato':'el',
+  'Fresco & Colorato':'fr',
+  'Caldo & Accogliente':'warm',
+  'Pensaci tu!':'auto',
+};
 function pickStyle(el,name){
   document.querySelectorAll('.style-opt').forEach(o=>o.classList.remove('sel'));
   el.classList.add('sel');ST.stile=name;
   document.querySelector('#sl-sty .sl-v').textContent=name;
   document.querySelector('#sl-sty .sl-v').className='sl-v hi';
   document.getElementById('s3sub').textContent=name+' ✓';
+  canvas.dataset.style=STYLE_SLUGS[name]||'';
   updateCtaState();
-  setTimeout(()=>openAcc(4),340);
+  // Fix 5: niente più auto-avanzamento allo step Extra — qui l'utente vuole
+  // sperimentare tra gli stili, deve restare libero di provarne altri e
+  // avanzare solo volontariamente col pulsante "Avanti".
 }
 
 // ── DYNAMIC DELIVERY DATE ──
@@ -111,6 +127,10 @@ function getDeliveryDate(){
   // also update hero bleed badge if visible
   const bbv=document.querySelector('.bb-val');
   if(bbv) bbv.innerHTML=`entro ${giorno} ⚡`;
+  // Fix 9b: stessa data (oggi + 2 giorni) riusata nella riga "Consegna" del box
+  // preventivo, invece di ricalcolarla da zero.
+  const sbDelivery=document.getElementById('slDeliveryVal');
+  if(sbDelivery) sbDelivery.textContent=`Online entro ${giorno} ${data} ${mese}`;
 })();
 
 // ── SECTOR ──
@@ -181,6 +201,11 @@ function onAltroInput(inp){
   if(val){
     v.textContent=val;v.className='sl-v hi';
     document.getElementById('s1sub').textContent=val+' ✓';
+    // Fix 6: percorso "Altro…" — applySectorConfig() aggiunge Menu+Copertina
+    // solo per i settori predefiniti in SECTOR_CONFIG, che non copre il testo
+    // libero. Stessa identica guardia (if(!ST.blocks.includes(b))) qui.
+    if(!ST.blocks.includes('Menu')) addBlockToCanvas('Menu');
+    if(!ST.blocks.includes('Copertina')) addBlockToCanvas('Copertina');
   } else {
     v.textContent='—';v.className='sl-v';
     document.getElementById('s1sub').textContent='Descrivi la tua attività';
@@ -271,10 +296,6 @@ function goToStep(n){
 }
 function goNext(){ goToStep(currentStep+1); }
 function goBack(){ goToStep(currentStep-1); }
-function dismissBanner(id){
-  const el=document.getElementById(id);
-  if(el) el.classList.remove('show');
-}
 
 // ── SHUFFLE CANVAS ──
 function shuffleCanvas(){
@@ -380,10 +401,14 @@ function fitPreviewToFrame(){
   });
 }
 
-// Pre-populate canvas with Nav + Hero (locked)
+// Fix 6: NON pre-popolare più la canvas con Menu+Copertina al caricamento —
+// era questo il motivo per cui lo stato neutro (#cvEmpty) non si vedeva mai:
+// addBlockToCanvas nasconde #cvEmpty appena chiamata, quindi veniva coperto
+// nello stesso istante del page load, prima di qualunque scelta dell'utente.
+// Menu+Copertina vengono aggiunti comunque "sempre inclusi", ma solo alla
+// prima selezione reale del settore — vedi applySectorConfig() (settori
+// predefiniti) e onAltroInput() (percorso "Altro…").
 function initCanvas(){
-  addBlockToCanvas('Menu');
-  addBlockToCanvas('Copertina');
   document.querySelectorAll('.drag-chip[data-locked="true"]').forEach(c=>c.classList.add('used'));
 }
 
@@ -508,32 +533,40 @@ function updatePlanSummary(prevCount=ST.blocks.filter(b=>b!=='Menu'&&b!=='Copert
   updateProBadges();
   syncAddonsSummary();
 
-  if(prevCount<=BASE_SECTION_LIMIT&&count>BASE_SECTION_LIMIT){
-    showToast('Sei passato al Pacchetto PRO! Sezioni illimitate sbloccate.','✓','success');
-  }
+  // Fix 3: il passaggio Base->Pro non usa più questo toast — lo segnala
+  // updateSectionBanners() con la modale #proModal (fixed, fuori dal layout).
   if(prevCount<BASE_SECTION_LIMIT&&count===BASE_SECTION_LIMIT){
     progress?.classList.add('sparkle');
     setTimeout(()=>progress?.classList.remove('sparkle'),1400);
   }
 }
 
-// Banner contestuali dello step "Sezioni": leggono ST.plan DOPO che
+// Notifiche di passaggio Base<->Pro (Fix 3): leggono ST.plan DOPO che
 // updatePlanSummary l'ha già impostato, senza toccarne la logica di calcolo.
 // Confronta contro lastIsPro (non contro prevCount/count, che dopo removeBlock
 // sono già entrambi post-mutazione e non distinguerebbero la transizione).
+// Base->Pro: modale centrata fuori dal flusso (#proModal). Pro->Base: il
+// toast già esistente nel sito, non toccato — nessuna delle due tocca mai il
+// flusso/dimensioni del configuratore.
+function openProModal(){
+  const modal=document.getElementById('proModal');
+  if(!modal)return;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden','false');
+  document.getElementById('proModalCloseBtn')?.focus();
+}
+function closeProModal(){
+  const modal=document.getElementById('proModal');
+  if(!modal)return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden','true');
+}
 function updateSectionBanners(){
   const isPro=ST.plan==='pro';
-  const upsell=document.getElementById('cfgUpsellBanner');
-  const downgrade=document.getElementById('cfgDowngradeBanner');
-  if(upsell) upsell.classList.toggle('show',isPro);
-  if(downgrade){
-    if(lastIsPro && !isPro){
-      downgrade.classList.add('show');
-      clearTimeout(downgrade._hideTimer);
-      downgrade._hideTimer=setTimeout(()=>downgrade.classList.remove('show'),6000);
-    } else if(isPro){
-      downgrade.classList.remove('show');
-    }
+  if(isPro && !lastIsPro){
+    openProModal();
+  } else if(!isPro && lastIsPro){
+    showToast('Sei tornato al piano Base','↩️','default');
   }
   lastIsPro=isPro;
 }
@@ -594,6 +627,29 @@ canvas.addEventListener('drop',e=>{
 });
 
 // ── CANVAS REORDER (drag between canvas blocks) ──
+// Fix 5: soglia di snap spostata al 40% (non al 50% centrale) — avvicinandosi
+// alla parte inferiore di un blocco l'inserimento "dopo" scatta prima e in modo
+// più prevedibile, invece di richiedere di centrare il cursore esattamente a metà.
+const DROP_SNAP_RATIO=0.4;
+function computeInsertAfter(targetEl,clientY){
+  const rect=targetEl.getBoundingClientRect();
+  return clientY>=rect.top+rect.height*DROP_SNAP_RATIO;
+}
+// Linea di inserimento (#cbDropIndicator): posizionata in coordinate LOCALI
+// (offsetTop/offsetHeight, non getBoundingClientRect) perché #canvas può
+// essere scalato via scaleY() da fitPreviewToFrame() — usare coordinate
+// "visive" post-transform la disallineerebbe dal reale punto di rilascio.
+function showDropIndicator(targetWrap,insertAfter){
+  const indicator=document.getElementById('cbDropIndicator');
+  if(!indicator||!targetWrap)return;
+  const top=insertAfter?targetWrap.offsetTop+targetWrap.offsetHeight:targetWrap.offsetTop;
+  indicator.style.top=`${top}px`;
+  indicator.classList.add('show');
+}
+function hideDropIndicator(){
+  document.getElementById('cbDropIndicator')?.classList.remove('show');
+}
+
 let draggedCb=null;
 function onCbDragStart(e){
   draggedCb=this;
@@ -607,19 +663,17 @@ function onCbDragOver(e){
   if(def&&def.locked){
     // show where it would go if locked block is in the way
     showToast(FIXED_SECTION_MSG);
+    hideDropIndicator();
     return;
   }
-  const rect=this.getBoundingClientRect();
-  const mid=rect.top+rect.height/2;
-  this.classList.remove('dragging-over-top','dragging-over-bot');
-  this.classList.add(e.clientY<mid?'dragging-over-top':'dragging-over-bot');
+  showDropIndicator(this,computeInsertAfter(this,e.clientY));
 }
 function onCbDragLeave(){
-  this.classList.remove('dragging-over-top','dragging-over-bot');
+  hideDropIndicator();
 }
 function onCbDrop(e){
   e.preventDefault();e.stopPropagation();
-  this.classList.remove('dragging-over-top','dragging-over-bot');
+  hideDropIndicator();
   if(!draggedCb||draggedCb===this)return;
   // don't allow dropping before locked items
   const targetDef=BLOCKS[this.dataset.block];
@@ -627,9 +681,7 @@ function onCbDrop(e){
     showToast(FIXED_SECTION_MSG);
     return;
   }
-  const rect=this.getBoundingClientRect();
-  const mid=rect.top+rect.height/2;
-  if(e.clientY<mid) canvas.insertBefore(draggedCb,this);
+  if(!computeInsertAfter(this,e.clientY)) canvas.insertBefore(draggedCb,this);
   else canvas.insertBefore(draggedCb,this.nextSibling);
   // update ST.blocks order
   ST.blocks=Array.from(canvas.querySelectorAll('.cb-wrap')).map(w=>w.dataset.block);
@@ -638,7 +690,7 @@ function onCbDrop(e){
 }
 function onCbDragEnd(){
   this.style.opacity='';
-  document.querySelectorAll('.cb-wrap').forEach(w=>w.classList.remove('dragging-over-top','dragging-over-bot'));
+  hideDropIndicator();
   draggedCb=null;
 }
 
@@ -684,17 +736,13 @@ function renderAddons(){
 function syncAddonsSummary(){
   const revisionTotal=ST.plan==='pro' ? 0 : ST.revisionRounds*REVISION_PRICE;
   ST.addons=ST.flatAddonTotal+revisionTotal;
-  const addonNames=[...ST.flatAddonNames];
-  if(ST.plan==='pro'){
-    addonNames.unshift('SEO Base incluso', '2 revisioni incluse');
-  } else if(ST.revisionRounds>0){
-    addonNames.push(`Revisione extra x${ST.revisionRounds}`);
-  }
   const v=document.querySelector('#sl-add .sl-v');
   v.textContent=ST.addons>0?'+€'+ST.addons:'—';
   v.className='sl-v'+(ST.addons>0?' hi':'');
   document.getElementById('totalPrice').textContent='€'+(ST.base+ST.addons);
-  document.getElementById('s4sub').textContent=addonNames.length?addonNames.join(', '):'Potenzia il tuo sito';
+  // Fix 4: #s4sub resta sempre "Potenzia il tuo sito" (statico in HTML) — il
+  // riepilogo di ciò che è stato scelto vive nel box preventivo (#sl-add), non
+  // più riscritto qui sopra il titolo dello step.
 }
 
 function setAddonState(el,on,price,name,free=false){
@@ -848,7 +896,11 @@ function goCheckout(){
 }
 function openModal(){
   const modal=document.getElementById('confirmModal');
-  if(modal) modal.classList.remove('hidden');
+  if(modal){
+    modal.classList.remove('hidden');
+    // Fix 7: focus di default sul pulsante primario ("Torna agli Extra")
+    document.querySelector('#confirmModal .modal-btn-primary')?.focus();
+  }
 }
 function closeModal(){
   const modal=document.getElementById('confirmModal');
@@ -937,6 +989,15 @@ const handlePreviewResize=()=>fitPreviewToFrame();
 window.addEventListener('resize',handlePreviewResize,{passive:true});
 cleanupFns.push(() => window.removeEventListener('resize',handlePreviewResize));
 
+// ── PRO MODAL — chiusura con Esc (Fix 3) ──
+const handleProModalKeydown=(e)=>{
+  if(e.key!=='Escape')return;
+  const modal=document.getElementById('proModal');
+  if(modal && !modal.classList.contains('hidden')) closeProModal();
+};
+document.addEventListener('keydown',handleProModalKeydown);
+cleanupFns.push(() => document.removeEventListener('keydown',handleProModalKeydown));
+
 // ── INIT ──
 renderAddons();
 initCanvas();
@@ -949,7 +1010,6 @@ openAcc(1);
   window.goToStep = goToStep;
   window.goNext = goNext;
   window.goBack = goBack;
-  window.dismissBanner = dismissBanner;
   window.shuffleCanvas = shuffleCanvas;
   window.removeBlock = removeBlock;
   window.toggleAddon = toggleAddon;
@@ -957,6 +1017,7 @@ openAcc(1);
   window.selectRevisionAddon = selectRevisionAddon;
   window.goCheckout = goCheckout;
   window.closeModal = closeModal;
+  window.closeProModal = closeProModal;
   window.closeModalAndOpenAddons = closeModalAndOpenAddons;
   window.confirmCheckout = confirmCheckout;
   window.toggleFaq = toggleFaq;
